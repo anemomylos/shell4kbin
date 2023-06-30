@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK" android:required="false"/>
+  <uses-permission-sdk-23 android:name="android.permission.ACCESS_COARSE_LOCATION" android:required="false"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+  <application
+    android:allowBackup="false"
+    android:appCategory="productivity"
+    android:configChanges="orientation"
+    android:fullBackupContent="false"
+    android:hardwareAccelerated="true"
+    android:icon="@mipmap/ic_launcher"
+    android:isGame="false"
+    android:label="@string/app_name"
+    android:largeHeap="true"
+    android:roundIcon="@mipmap/ic_launcher"
+    android:supportsRtl="true"
+    android:usesCleartextTraffic="true"
+    tools:ignore="GoogleAppIndexingWarning,ManifestResource,UnusedAttribute">
+
+    <activity
+      android:name="net.easyjoin.shell4kbin.MainActivity"
+      android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
+      android:label="@string/app_name"
+      android:launchMode="singleInstance"
+      android:theme="@style/Purple"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
+    </activity>
+
+    <uses-library
+      android:name="org.apache.http.legacy"
+      android:required="false" />
+
+  </application>
+
+</manifest>
