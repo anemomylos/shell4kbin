@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="background_dark" type="color">#ffb8860b</item>
+    <item name="background_light" type="color">#ffd2b48c</item>
+    <item name="transparent" type="color">#00b8860b</item>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="mainBG" format="color"/>
+    <attr name="opaqueBG" format="color"/>
+
+    <attr name="tabIndicatorColor" format="color"/>
+    <attr name="tabSelectedTextColor" format="color"/>
+    <attr name="tabUnselectedTextColor" format="color"/>
+    <attr name="toolbarTabElevation" format="dimension"/>
+
+    <attr name="listItemElevation" format="dimension"/>
+    <attr name="listItemBG" format="color"/>
+    <attr name="listItemTextColor" format="color"/>
+    <attr name="listItemTextColor2" format="color"/>
+    <attr name="listItemTextColor3" format="color"/>
+    <attr name="listSeparatorColor" format="color"/>
+
+    <attr name="messageListBG" format="color"/>
+    <attr name="messageListSelectedBG" format="color"/>
+    <attr name="messageListLine" format="color"/>
+    <attr name="messageMyBG" format="color"/>
+    <attr name="messageOtherBG" format="color"/>
+
+    <attr name="deviceOnline" format="color"/>
+    <attr name="deviceOffline" format="color"/>
+
+    <attr name="mainDrawerListLine" format="color"/>
+
+    <attr name="circularThumbBG" format="color"/>
+
+    <attr name="buttonBG" format="color"/>
+    <attr name="buttonTextColor" format="color"/>
+
+    <attr name="popupTextColor" format="color"/>
+
+    <attr name="iconTint" format="color"/>
+    <attr name="iconTintOpaque" format="color"/>
+    <attr name="iconSpecial" format="color"/>
+    <attr name="textColor" format="color"/>
+    <attr name="textColorOpaque" format="color"/>
+</resources>
