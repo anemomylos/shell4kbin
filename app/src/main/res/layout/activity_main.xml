@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  tools:context=".MainActivity"
+  android:orientation="vertical">
+
+  <WebView
+    android:id="@+id/webView"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1" />
+
+  <androidx.appcompat.widget.LinearLayoutCompat
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="?attr/colorPrimary"
+    android:padding="8dp"
+    android:alpha="0.80">
+    <ImageButton
+      android:id="@+id/arrowBackButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:src="@drawable/arrow_back_18"
+      android:scaleType="fitCenter"
+      android:background="@android:color/transparent"
+      android:tint="?attr/buttonTextColor"
+      android:paddingStart="8dp"
+      android:paddingLeft="8dp"
+      android:layout_gravity="center"/>
+    <ImageButton
+      android:id="@+id/arrowForwardButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:src="@drawable/arrow_forward_18"
+      android:scaleType="fitCenter"
+      android:background="@android:color/transparent"
+      android:tint="?attr/buttonTextColor"
+      android:paddingStart="8dp"
+      android:paddingLeft="8dp"
+      android:paddingEnd="16dp"
+      android:paddingRight="16dp"
+      android:layout_gravity="center"/>
+    <androidx.appcompat.widget.LinearLayoutCompat
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:background="@drawable/bg_rounded">
+      <TextView
+        android:id="@+id/pageTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/buttonTextColor"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:singleLine="true"
+        android:ellipsize="end"/>
+      <ImageButton
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/refresh_18"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:tint="?attr/buttonTextColor"
+        android:paddingStart="8dp"
+        android:paddingLeft="8dp"
+        android:layout_gravity="center"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+    <ImageButton
+      android:id="@+id/menuButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:src="@drawable/menu_18"
+      android:scaleType="fitCenter"
+      android:background="@android:color/transparent"
+      android:tint="?attr/buttonTextColor"
+      android:paddingStart="16dp"
+      android:paddingLeft="16dp"
+      android:paddingEnd="8dp"
+      android:paddingRight="8dp"
+      android:layout_gravity="center" />
+  </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.appcompat.widget.LinearLayoutCompat>
