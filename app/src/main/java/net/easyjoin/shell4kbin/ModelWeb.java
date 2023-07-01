@@ -1,6 +1,8 @@
 package net.easyjoin.shell4kbin;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.view.KeyEvent;
@@ -9,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
@@ -17,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.PopupMenu;
 
+import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 
@@ -44,6 +48,12 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   private ImageButton refreshButton;
   private ImageButton menuButton;
   private PopupMenu browserMenu;
+  private MyJavascript myJavascript;
+  private String profileName;
+  private final String profileContainer = "a class=\\\"login\\\" href=\\\"/u/";
+  private final String sharedPreferencesKey = "net.easyjoin.shell4kbin";
+  private final String profileNameKey = "profileName";
+  private SharedPreferences sharedPreferences;
 
   public ModelWeb(String webViewName, Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
   {
@@ -53,8 +63,21 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     this.isNormalView = isNormalView;
     this.isDesktopView = isDesktopView;
     pagesStack = new ArrayList<>();
+
     initLayout();
     initWebView();
+
+    sharedPreferences = activity.getSharedPreferences(sharedPreferencesKey, Context.MODE_PRIVATE);
+    profileName = sharedPreferences.getString(profileNameKey, "");
+
+    String initialPage = "https://kbin.social/";
+    if(!Miscellaneous.isEmpty(profileName))
+    {
+      initialPage = "https://kbin.social/sub";
+      createBrowserMenu();
+    }
+
+    loadUrl(initialPage);
   }
 
   public ModelWeb(String webViewName, Activity activity)
@@ -90,7 +113,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   private void initWebView()
   {
     webView.setWebViewClient(new MyBrowser(this, webViewName));
-    //webView.addJavascriptInterface(new MyJavascript(), "HTMLOUT");
+    myJavascript = new MyJavascript();
+    webView.addJavascriptInterface(myJavascript, "HTMLOUT");
     webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
     webView.setScrollbarFadingEnabled(false);
     webView.setWebChromeClient(new MyWebChromeClient());
@@ -263,7 +287,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
   }
 
-  public void setPageTitle(WebView webView)
+  public void setPageTitle()
   {
     pageTitle.setText(webView.getTitle());
   }
@@ -331,7 +355,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
   private void setArrowsStatus()
   {
-    arrowBackButton.setEnabled(currentPageIndex != 0);
+    arrowBackButton.setEnabled(currentPageIndex > 0);
     arrowForwardButton.setEnabled(currentPageIndex < (pagesStack.size() - 1));
     if(arrowBackButton.isEnabled())
     {
@@ -357,6 +381,11 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     MenuInflater inflater = browserMenu.getMenuInflater();
     inflater.inflate(MyResources.getMenu("browser_menu", activity), browserMenu.getMenu());
     browserMenu.setOnMenuItemClickListener(this);
+
+    boolean existProfile = !Miscellaneous.isEmpty(profileName);
+    browserMenu.getMenu().findItem(MyResources.getId("subscribedPosts", activity)).setVisible(existProfile);
+    browserMenu.getMenu().findItem(MyResources.getId("moderatedPosts", activity)).setVisible(existProfile);
+    browserMenu.getMenu().findItem(MyResources.getId("moderatedMagazines", activity)).setVisible(existProfile);
   }
 
   private void showBrowserMenu()
@@ -367,17 +396,21 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   @Override
   public boolean onMenuItemClick(MenuItem item)
   {
-    if(item.getItemId() == MyResources.getId("menuModeratedMagazines", activity))
+    if(item.getItemId() == MyResources.getId("moderatedPosts", activity))
     {
       webView.loadUrl("https://kbin.social/mod");
     }
-    else if(item.getItemId() == MyResources.getId("menuSubscribedMagazines", activity))
+    else if(item.getItemId() == MyResources.getId("subscribedPosts", activity))
     {
       webView.loadUrl("https://kbin.social/sub");
     }
-    else if(item.getItemId() == MyResources.getId("allPosts", activity))
+    else if(item.getItemId() == MyResources.getId("topPosts", activity))
     {
-      webView.loadUrl("https://kbin.social/");
+      webView.loadUrl("https://kbin.social/top");
+    }
+    else if(item.getItemId() == MyResources.getId("moderatedMagazines", activity))
+    {
+      webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
     }
     else
     {
@@ -391,12 +424,84 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   {
     if(currentPageIndex > 0)
     {
-      showPreviousPage();
+      if ((event != null) && (event.isLongPress()))
+      {
+        if( (pagesStack.get(currentPageIndex).startsWith("https://kbin.social"))
+          && !((pagesStack.size() > currentPageIndex) && (!pagesStack.get(pagesStack.size() - 1).startsWith("https://kbin.social"))) )
+        {
+          activity.finish();
+        }
+        else
+        {
+          for(int i = currentPageIndex; i>0; i--)
+          {
+            if(pagesStack.get(i).startsWith("https://kbin.social"))
+            {
+              if(i != currentPageIndex)
+              {
+                currentPageIndex = i;
+                refresh();
+              }
+              break;
+            }
+          }
+        }
+      }
+      else
+      {
+        showPreviousPage();
+      }
+
       return true;
     }
     else
     {
+      if ((event != null) && (event.isLongPress()))
+      {
+        activity.finish();
+        return true;
+      }
       return false;
+    }
+  }
+
+  public void elaborateHtml()
+  {
+    if(Miscellaneous.isEmpty(profileName))
+    {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      {
+        webView.evaluateJavascript("(function(){return document.body.outerHTML})();",
+          new ValueCallback<String>()
+          {
+            @Override
+            public void onReceiveValue(String html)
+            {
+              try
+              {
+                int index = html.indexOf(profileContainer);
+                if (index != -1)
+                {
+                  int index2 = html.indexOf("\\\"", index + profileContainer.length());
+                  profileName = html.substring(index + profileContainer.length(), index2);
+
+                  if (!Miscellaneous.isEmpty(profileName))
+                  {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(profileNameKey, profileName);
+                    editor.apply();
+
+                    createBrowserMenu();
+                  }
+                }
+              }
+              catch (Throwable t)
+              {
+                MyLog.e(className, "elaborateHtml", t);
+              }
+            }
+          });
+      }
     }
   }
 }

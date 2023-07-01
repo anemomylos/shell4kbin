@@ -2,6 +2,7 @@ package net.easyjoin.shell4kbin;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -24,8 +25,20 @@ public class MainActivity extends AppCompatActivity
       super.onCreate(savedInstanceState);
       setContentView(MyResources.getLayout("activity_main", this));
 
-      modelWeb = new ModelWeb("webView", this);
-      modelWeb.loadUrl("https://kbin.social/");
+      final Activity activity = this;
+      new Thread(new Runnable() {
+        @Override
+        public void run()
+        {
+          activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run()
+            {
+              modelWeb = new ModelWeb("webView", activity);
+            }
+          });
+        }
+      }).start();
     }
     catch (Throwable t)
     {
@@ -84,12 +97,7 @@ public class MainActivity extends AppCompatActivity
   {
     if (keyCode == KeyEvent.KEYCODE_BACK)
     {
-      if ((event != null) && (event.isLongPress()))
-      {
-        finish();
-        return true;
-      }
-      else if ((modelWeb != null) && (modelWeb.backButtonPressed(keyCode, event)))
+      if ((modelWeb != null) && (modelWeb.backButtonPressed(keyCode, event)))
       {
         return true;
       }

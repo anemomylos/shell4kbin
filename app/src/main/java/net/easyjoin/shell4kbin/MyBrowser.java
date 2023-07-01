@@ -1,6 +1,7 @@
 package net.easyjoin.shell4kbin;
 
 import android.graphics.Bitmap;
+import android.webkit.ValueCallback;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -44,7 +45,7 @@ public class MyBrowser extends WebViewClient
     super.onPageStarted(webView, url, favicon);
     modelWeb.pageLoadProgress(true);
     modelWeb.addNextPage(url);
-    modelWeb.setPageTitle(webView);
+    modelWeb.setPageTitle();
   }
 
   @Override
@@ -52,7 +53,8 @@ public class MyBrowser extends WebViewClient
   {
     super.onPageFinished(webView, url);
     modelWeb.pageLoadProgress(false);
-    modelWeb.setPageTitle(webView);
+    modelWeb.setPageTitle();
+    modelWeb.elaborateHtml();
   }
 
   @Override

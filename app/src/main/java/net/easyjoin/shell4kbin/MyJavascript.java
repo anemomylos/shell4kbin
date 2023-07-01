@@ -1,8 +1,9 @@
 package net.easyjoin.shell4kbin;
 
 
-import android.text.Html;
 import android.webkit.JavascriptInterface;
+
+import net.easyjoin.utils.MyLog;
 
 public final class MyJavascript
 {
@@ -11,14 +12,6 @@ public final class MyJavascript
   @JavascriptInterface
   public void processHTML(final String html)
   {
-    Thread oAuthFetcher=new Thread(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        String oAuthDetails = Html.fromHtml(html).toString();
-      }
-    });
-    oAuthFetcher.start();
+    MyLog.w(className, "processHTML", html);
   }
 }
