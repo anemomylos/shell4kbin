@@ -3,11 +3,10 @@ package net.easyjoin.shell4kbin;
 import android.graphics.Bitmap;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import net.droidopoulos.utils.MyLog;
+import net.easyjoin.utils.MyLog;
 
 public class MyBrowser extends WebViewClient
 {

@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
@@ -18,8 +17,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.PopupMenu;
 
-import net.droidopoulos.utils.MyLog;
-import net.droidopoulos.various.MyResources;
+import net.easyjoin.utils.MyLog;
+import net.easyjoin.utils.MyResources;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -271,7 +270,6 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
   public void addNextPage(String url)
   {
-    MyLog.w(className, "addNextPage", "currentPageIndex: " + currentPageIndex);
     if(!"about:blank".equals(url))
     {
       if (currentPageIndex > -1)
@@ -281,10 +279,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
           currentPageIndex++;
           pagesStack.add(currentPageIndex, url);
 
-          MyLog.w(className, "addNextPage", "currentPageIndex: " + currentPageIndex + ", pagesStack.size(): " + pagesStack.size());
           if (pagesStack.size() > (currentPageIndex + 1))
           {
-            MyLog.w(className, "addNextPage", " removing elements from pagesStack after index: " + currentPageIndex);
             pagesStack.subList(currentPageIndex + 1, pagesStack.size()).clear();
           }
         }
@@ -329,14 +325,12 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   {
     if( (currentPageIndex > -1) && (currentPageIndex < pagesStack.size()) )
     {
-      MyLog.w(className, "refresh", "reloading: " + pagesStack.get(currentPageIndex));
       webView.loadUrl(pagesStack.get(currentPageIndex));
     }
   }
 
   private void setArrowsStatus()
   {
-    MyLog.w(className, "refresh", "currentPageIndex: " + currentPageIndex + ", pagesStack.size(): " + pagesStack.size());
     arrowBackButton.setEnabled(currentPageIndex != 0);
     arrowForwardButton.setEnabled(currentPageIndex < (pagesStack.size() - 1));
     if(arrowBackButton.isEnabled())

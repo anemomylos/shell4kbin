@@ -1,16 +1,13 @@
 package net.easyjoin.shell4kbin;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
-import net.droidopoulos.utils.MyLog;
-import net.droidopoulos.various.MyResources;
+import net.easyjoin.utils.MyLog;
+import net.easyjoin.utils.MyResources;
 
 public class MainActivity extends AppCompatActivity
 {
