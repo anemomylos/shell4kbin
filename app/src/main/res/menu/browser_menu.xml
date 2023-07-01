@@ -4,22 +4,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".activity.MainActivity">
 
+    <item
+      android:id="@+id/topPosts"
+      android:title="@string/top_posts"
+      android:orderInCategory="5"
+      app:showAsAction="never"/>
 
     <item
-        android:id="@+id/menuModeratedMagazines"
-        android:title="@string/moderated_magazines"
+      android:id="@+id/subscribedPosts"
+      android:title="@string/subscribed_posts"
+      android:orderInCategory="10"
+      app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/moderatedPosts"
+        android:title="@string/moderated_posts"
         android:orderInCategory="15"
         app:showAsAction="never"/>
 
     <item
-        android:id="@+id/menuSubscribedMagazines"
-      android:title="@string/subscribed_magazines"
-        android:orderInCategory="20"
-        app:showAsAction="never"/>
-
-    <item
-        android:id="@+id/allPosts"
-        android:title="@string/all_posts"
-        android:orderInCategory="25"
-        app:showAsAction="never"/>
+      android:id="@+id/moderatedMagazines"
+      android:title="@string/moderated_magazines"
+      android:orderInCategory="20"
+      app:showAsAction="never"/>
 </menu>
