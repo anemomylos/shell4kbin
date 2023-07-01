@@ -25,7 +25,7 @@
       android:id="@+id/arrowBackButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:src="@drawable/arrow_back_18"
+      android:src="@drawable/arrow_back_24"
       android:scaleType="fitCenter"
       android:background="@android:color/transparent"
       android:tint="?attr/buttonTextColor"
@@ -36,7 +36,7 @@
       android:id="@+id/arrowForwardButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:src="@drawable/arrow_forward_18"
+      android:src="@drawable/arrow_forward_24"
       android:scaleType="fitCenter"
       android:background="@android:color/transparent"
       android:tint="?attr/buttonTextColor"
@@ -50,7 +50,8 @@
       android:layout_height="wrap_content"
       android:layout_weight="1"
       android:orientation="horizontal"
-      android:background="@drawable/bg_rounded">
+      android:background="@drawable/bg_rounded"
+      android:layout_gravity="center">
       <TextView
         android:id="@+id/pageTitle"
         android:layout_width="0dp"
@@ -77,7 +78,7 @@
       android:id="@+id/menuButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:src="@drawable/menu_18"
+      android:src="@drawable/menu_24"
       android:scaleType="fitCenter"
       android:background="@android:color/transparent"
       android:tint="?attr/buttonTextColor"
