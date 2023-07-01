@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">Kbin shell</string>
 
+    <string name="moderated_posts">Moderated posts</string>
+    <string name="subscribed_posts">Subscribed posts</string>
+    <string name="top_posts">Top posts</string>
     <string name="moderated_magazines">Moderated magazines</string>
-    <string name="subscribed_magazines">Subscribed magazines</string>
-    <string name="all_posts">All magazines</string>
 </resources>
