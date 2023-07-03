@@ -5,4 +5,12 @@
     <string name="subscribed_posts">Subscribed posts</string>
     <string name="top_posts">Top posts</string>
     <string name="moderated_magazines">Moderated magazines</string>
+    <string name="settings">Settings</string>
+    <string name="inject_js">Inject JS</string>
+    <string name="code">Code</string>
+    <string name="save">Save</string>
+    <string name="font_size">Font size</string>
+    <string name="smaller_font">Smaller font</string>
+    <string name="bigger_font">Bigger font</string>
+    <string name="urls_saved_clipboard">URL saved to clipboard</string>
 </resources>

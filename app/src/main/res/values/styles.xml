@@ -1402,6 +1402,53 @@
         <item name="textColorOpaque">#70000000</item>
     </style>
 
+    <style name="Purple_Popup" parent="MyCommonThemePopup">
+        <item name="colorPrimary">#9C27B0</item>
+        <item name="colorPrimaryDark">#4A148C</item>
+        <item name="colorAccent">#AA00FF</item>
+
+        <item name="mainBG">#ffffff</item>
+        <item name="opaqueBG">#99ffffff</item>
+
+        <item name="tabIndicatorColor">#ffffff</item>
+        <item name="tabSelectedTextColor">#ffffff</item>
+        <item name="tabUnselectedTextColor">#70ffffff</item>
+
+        <item name="toolbarTabElevation">8dp</item>
+
+        <item name="listItemElevation">4dp</item>
+        <item name="listItemBG">#ffffff</item>
+        <item name="listItemTextColor">#87000000</item>
+        <item name="listItemTextColor2">#54000000</item>
+        <item name="listItemTextColor3">#54000000</item>
+        <item name="listSeparatorColor">#cccccc</item>
+
+        <item name="messageListBG">#EBEBEB</item>
+        <item name="messageListSelectedBG">#E1BEE7</item> <!-- 100 -->
+        <item name="messageListLine">#cccccc</item>
+
+        <item name="messageMyBG">#BDBDBD</item>
+        <item name="messageOtherBG">#CE93D8</item> <!-- 200 -->
+
+        <item name="deviceOnline">#4caf50</item>
+        <item name="deviceOffline">#f44336</item>
+
+        <item name="mainDrawerListLine">#cccccc</item>
+
+        <item name="circularThumbBG">#d500f9</item> <!-- A400 -->
+
+        <item name="buttonBG">#d500f9</item> <!-- A400 -->
+        <item name="buttonTextColor">#ffffff</item>
+
+        <item name="popupTextColor">#ffffff</item>
+
+        <item name="iconTint">#000000</item>
+        <item name="iconTintOpaque">#70000000</item>
+        <item name="iconSpecial">#9C27B0</item>
+        <item name="textColor">#000000</item>
+        <item name="textColorOpaque">#70000000</item>
+    </style>
+
     <style name="Black_Indigo_Popup" parent="MyCommonThemePopup">
         <item name="colorPrimary">#262a46</item> <!-- n1 -->
         <item name="colorPrimaryDark">#262a68</item> <!-- n2 -->
