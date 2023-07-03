@@ -5,26 +5,58 @@
     tools:context=".activity.MainActivity">
 
     <item
+      android:id="@+id/settings"
+      android:title="@string/settings"
+      android:orderInCategory="10"
+      app:showAsAction="never">
+        <menu>
+            <item
+              android:id="@+id/fontSize"
+              android:title="@string/font_size"
+              android:orderInCategory="10"
+              app:showAsAction="never">
+                <menu>
+                    <item
+                      android:id="@+id/smallerFont"
+                      android:title="@string/smaller_font"
+                      android:orderInCategory="10"
+                      app:showAsAction="never"/>
+                    <item
+                      android:id="@+id/biggerFont"
+                      android:title="@string/bigger_font"
+                      android:orderInCategory="20"
+                      app:showAsAction="never"/>
+                </menu>
+            </item>
+            <item
+              android:id="@+id/settingInjectJS"
+              android:title="@string/inject_js"
+              android:orderInCategory="20"
+              app:showAsAction="never"/>
+        </menu>
+    </item>
+
+    <item
       android:id="@+id/topPosts"
       android:title="@string/top_posts"
-      android:orderInCategory="5"
+      android:orderInCategory="15"
       app:showAsAction="never"/>
 
     <item
       android:id="@+id/subscribedPosts"
       android:title="@string/subscribed_posts"
-      android:orderInCategory="10"
+      android:orderInCategory="20"
       app:showAsAction="never"/>
 
     <item
         android:id="@+id/moderatedPosts"
         android:title="@string/moderated_posts"
-        android:orderInCategory="15"
+        android:orderInCategory="25"
         app:showAsAction="never"/>
 
     <item
       android:id="@+id/moderatedMagazines"
       android:title="@string/moderated_magazines"
-      android:orderInCategory="20"
+      android:orderInCategory="30"
       app:showAsAction="never"/>
 </menu>
