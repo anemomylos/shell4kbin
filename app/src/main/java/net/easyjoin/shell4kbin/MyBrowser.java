@@ -1,6 +1,7 @@
 package net.easyjoin.shell4kbin;
 
 import android.graphics.Bitmap;
+import android.util.Base64;
 import android.webkit.ValueCallback;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -8,6 +9,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import net.easyjoin.utils.MyLog;
+
+import java.io.InputStream;
+import java.net.URLEncoder;
 
 public class MyBrowser extends WebViewClient
 {
@@ -55,6 +59,7 @@ public class MyBrowser extends WebViewClient
     modelWeb.pageLoadProgress(false);
     modelWeb.setPageTitle();
     modelWeb.elaborateHtml();
+    modelWeb.inject();
   }
 
   @Override

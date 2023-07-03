@@ -1,13 +1,19 @@
 package net.easyjoin.shell4kbin;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -17,13 +23,18 @@ import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.PopupMenu;
 
+import net.easyjoin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
+import net.easyjoin.utils.VariousUtils;
 
+import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,9 +62,6 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   private MyJavascript myJavascript;
   private String profileName;
   private final String profileContainer = "a class=\\\"login\\\" href=\\\"/u/";
-  private final String sharedPreferencesKey = "net.easyjoin.shell4kbin";
-  private final String profileNameKey = "profileName";
-  private SharedPreferences sharedPreferences;
 
   public ModelWeb(String webViewName, Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
   {
@@ -67,8 +75,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     initLayout();
     initWebView();
 
-    sharedPreferences = activity.getSharedPreferences(sharedPreferencesKey, Context.MODE_PRIVATE);
-    profileName = sharedPreferences.getString(profileNameKey, "");
+    profileName = VariousUtils.readPreference(Constants.profileNameKey, "", activity);
 
     String initialPage = "https://kbin.social/";
     if(!Miscellaneous.isEmpty(profileName))
@@ -78,6 +85,13 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
 
     loadUrl(initialPage);
+
+    String injectJSSwitch = VariousUtils.readPreference(Constants.injectJSKey, "0", activity);
+    if("1".equals(injectJSSwitch))
+    {
+      String js2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", activity);
+      VariousUtils.setJS2Inject(js2Inject);
+    }
   }
 
   public ModelWeb(String webViewName, Activity activity)
@@ -94,18 +108,59 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       loadingProgress.getIndeterminateDrawable().setColorFilter(Color.parseColor(MyResources.getAttrValue("colorPrimary", activity)), android.graphics.PorterDuff.Mode.MULTIPLY);
     }
     pageTitle = activity.findViewById(MyResources.getId("pageTitle", activity));
-    pageTitle = activity.findViewById(MyResources.getId("pageTitle", activity));
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
     refreshButton = activity.findViewById(MyResources.getId("refreshButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
 
     createBrowserMenu();
+    //keepMenuOpenOnSelection();
+
     menuButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v)
       {
         showBrowserMenu();
+      }
+    });
+
+    refreshButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v)
+      {
+        refresh();
+      }
+    });
+
+    arrowBackButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v)
+      {
+        showPreviousPage();
+      }
+    });
+
+    arrowForwardButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v)
+      {
+        showNextPage();
+      }
+    });
+
+    pageTitle.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v)
+      {
+        if(currentPageIndex > -1)
+        {
+          String currentUrl = pagesStack.get(currentPageIndex);
+          ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+          ClipData clip = ClipData.newPlainText(MyResources.getString("app_name", activity), currentUrl);
+          clipboard.setPrimaryClip(clip);
+          Toast.makeText(activity, MyResources.getString("urls_saved_clipboard", activity) + "\n\n" + currentUrl, Toast.LENGTH_SHORT).show();
+        }
+        return true;
       }
     });
   }
@@ -159,29 +214,16 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       webSettings.setUserAgentString(newUA);
     }
 
-    refreshButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v)
+    String fontSize = VariousUtils.readPreference(Constants.fontSizeKey, "", activity);
+    if(!Miscellaneous.isEmpty(fontSize))
+    {
+      try
       {
-        refresh();
+        int fontSizeInt = Integer.parseInt(fontSize);
+        webSettings.setDefaultFontSize(fontSizeInt);
       }
-    });
-
-    arrowBackButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v)
-      {
-        showPreviousPage();
-      }
-    });
-
-    arrowForwardButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v)
-      {
-        showNextPage();
-      }
-    });
+      catch (NumberFormatException nfe){}
+    }
   }
 
   public void set()
@@ -388,6 +430,34 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     browserMenu.getMenu().findItem(MyResources.getId("moderatedMagazines", activity)).setVisible(existProfile);
   }
 
+  private void keepMenuOpenOnSelection()
+  {
+    MenuItem smallerFont = browserMenu.getMenu().findItem(MyResources.getId("smallerFont", activity));
+    MenuItem biggerFont = browserMenu.getMenu().findItem(MyResources.getId("biggerFont", activity));
+    keepMenuOpenOnSelection(smallerFont);
+    keepMenuOpenOnSelection(biggerFont);
+  }
+
+  private void keepMenuOpenOnSelection(MenuItem item)
+  {
+    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+    item.setActionView(new View(activity));
+    item.setOnActionExpandListener(new MenuItem.OnActionExpandListener()
+    {
+      @Override
+      public boolean onMenuItemActionExpand(MenuItem item)
+      {
+        return false;
+      }
+
+      @Override
+      public boolean onMenuItemActionCollapse(MenuItem item)
+      {
+        return false;
+      }
+    });
+  }
+
   private void showBrowserMenu()
   {
     browserMenu.show();
@@ -412,12 +482,41 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     {
       webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
     }
+    else if(item.getItemId() == MyResources.getId("settingInjectJS", activity))
+    {
+      Intent injectJSActivityIntent = new Intent(activity.getApplicationContext(), InjectJSActivity.class);
+      injectJSActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      activity.getApplicationContext().startActivity(injectJSActivityIntent);
+    }
+    else if(item.getItemId() == MyResources.getId("smallerFont", activity))
+    {
+      keepMenuOpenOnSelection(item);
+      WebSettings webSettings = webView.getSettings();
+      int fontSize = webSettings.getDefaultFontSize() - 1;
+      setFontSize(fontSize);
+      return false;
+    }
+    else if(item.getItemId() == MyResources.getId("biggerFont", activity))
+    {
+      keepMenuOpenOnSelection(item);
+      WebSettings webSettings = webView.getSettings();
+      int fontSize = webSettings.getDefaultFontSize() + 1;
+      setFontSize(fontSize);
+      return false;
+    }
     else
     {
       return false;
     }
 
     return true;
+  }
+
+  private void setFontSize(int fontSize)
+  {
+    WebSettings webSettings = webView.getSettings();
+    webSettings.setDefaultFontSize(fontSize);
+    VariousUtils.savePreference(Constants.fontSizeKey, "" + fontSize, activity);
   }
 
   public boolean backButtonPressed(int keyCode, KeyEvent event)
@@ -467,40 +566,81 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
   public void elaborateHtml()
   {
-    if(Miscellaneous.isEmpty(profileName))
+    String currentUrl = webView.getUrl();
+
+    if (Miscellaneous.isEmpty(profileName))
     {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      if ((currentUrl != null) && (currentUrl.startsWith("https://kbin.social/")))
       {
-        webView.evaluateJavascript("(function(){return document.body.outerHTML})();",
-          new ValueCallback<String>()
-          {
-            @Override
-            public void onReceiveValue(String html)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        {
+          webView.evaluateJavascript("(function(){return document.body.outerHTML})();",
+            new ValueCallback<String>()
             {
-              try
+              @Override
+              public void onReceiveValue(String html)
               {
-                int index = html.indexOf(profileContainer);
-                if (index != -1)
+                try
                 {
-                  int index2 = html.indexOf("\\\"", index + profileContainer.length());
-                  profileName = html.substring(index + profileContainer.length(), index2);
-
-                  if (!Miscellaneous.isEmpty(profileName))
+                  int index = html.indexOf(profileContainer);
+                  if (index != -1)
                   {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(profileNameKey, profileName);
-                    editor.apply();
+                    int index2 = html.indexOf("\\\"", index + profileContainer.length());
+                    profileName = html.substring(index + profileContainer.length(), index2);
 
-                    createBrowserMenu();
+                    if (!Miscellaneous.isEmpty(profileName))
+                    {
+                      VariousUtils.savePreference(Constants.profileNameKey, profileName, activity);
+
+                      createBrowserMenu();
+                    }
                   }
                 }
+                catch (Throwable t)
+                {
+                  MyLog.e(className, "elaborateHtml", t);
+                }
               }
-              catch (Throwable t)
-              {
-                MyLog.e(className, "elaborateHtml", t);
-              }
-            }
-          });
+            });
+        }
+      }
+    }
+    else if ((currentUrl != null) && (currentUrl.startsWith("https://kbin.social/login")))
+    {
+      VariousUtils.deletePreference(Constants.profileNameKey, activity);
+    }
+  }
+
+  public void inject()
+  {
+    if(!Miscellaneous.isEmpty(VariousUtils.getJS2Inject()))
+    {
+      injectJS();
+    }
+  }
+
+  private void injectJS()
+  {
+    InputStream inputStream = null;
+    try
+    {
+      webView.loadUrl("javascript:(function() {" +
+        "var parent = document.getElementsByTagName('head').item(0);" +
+        "var script = document.createElement('script');" +
+        "script.type = 'text/javascript';" +
+        "script.innerHTML = decodeURIComponent(window.atob('" + VariousUtils.getJS2Inject() + "'));" +
+        "parent.appendChild(script)" +
+        "})()");
+    }
+    catch (Throwable t)
+    {
+      MyLog.e(className, "injectJS", t);
+    }
+    finally
+    {
+      if(inputStream != null)
+      {
+        try { inputStream.close(); } catch (Throwable t) {}
       }
     }
   }
