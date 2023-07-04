@@ -15,7 +15,7 @@ public final class ThemeUtils
   private static int previousUUIMode = -100;
 
 
-  private static boolean useBlackTheme(Context context)
+  public static boolean useBlackTheme(Context context)
   {
     boolean useBlackTheme = false;
 
