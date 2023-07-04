@@ -31,6 +31,7 @@ import net.easyjoin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
+import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
 
 import java.io.InputStream;
@@ -84,6 +85,12 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       createBrowserMenu();
     }
 
+    if(ThemeUtils.useBlackTheme(activity))
+    {
+      webView.setBackgroundColor(Color.BLACK);
+    }
+
+    //loadEmptyPage();
     loadUrl(initialPage);
 
     String injectJSSwitch = VariousUtils.readPreference(Constants.injectJSKey, "0", activity);
@@ -226,9 +233,11 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
   }
 
-  public void set()
+  public void loadEmptyPage()
   {
-
+    String html = "<html><body style=\"background-color: black\"></body></html>";
+    String encodedHtml = Base64.encodeToString(html.getBytes(), Base64.NO_PADDING);
+    webView.loadData(encodedHtml, "text/html", "base64");
   }
 
   public void pageLoadProgress(boolean isProgressVisible)
