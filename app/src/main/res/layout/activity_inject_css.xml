@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  tools:context=".InjectCSSActivity"
+  android:padding="16dp"
+  android:background="?attr/listItemBG">
+  <androidx.appcompat.widget.LinearLayoutCompat
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.SwitchCompat
+      android:id="@+id/injectCSSSwitch"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/inject_css"
+      android:textColor="?attr/textColor"
+      android:layout_marginBottom="8dp"
+      android:paddingStart="8dp"
+      android:paddingEnd="8dp"/>
+
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/code"
+      android:paddingStart="4dp"
+      android:paddingLeft="4dp"
+      android:paddingBottom="4dp"
+      android:textColor="?attr/textColorOpaque"/>
+
+    <androidx.appcompat.widget.AppCompatEditText
+      android:id="@+id/cssText"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:inputType="textMultiLine"
+      android:background="@drawable/bg_rounded"
+      android:gravity="top|start"
+      android:padding="4dp"
+      android:scrollbars="vertical"
+      android:textColor="?attr/textColor"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+      android:id="@+id/saveButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/save"
+      android:textAllCaps="false"
+      android:textColor="?attr/buttonTextColor"
+      android:background="?attr/buttonBG"
+      android:paddingStart="8dp"
+      android:paddingEnd="8dp"
+      android:layout_marginStart="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginTop="16dp"
+      android:layout_gravity="center"/>
+
+  </androidx.appcompat.widget.LinearLayoutCompat>
+</RelativeLayout>
