@@ -11,7 +11,6 @@
       app:showAsAction="never">
         <menu>
             <item
-              android:id="@+id/fontSize"
               android:title="@string/font_size"
               android:orderInCategory="10"
               app:showAsAction="never">
@@ -29,10 +28,22 @@
                 </menu>
             </item>
             <item
-              android:id="@+id/settingInjectJS"
-              android:title="@string/inject_js"
+              android:title="@string/inject_code"
               android:orderInCategory="20"
-              app:showAsAction="never"/>
+              app:showAsAction="never">
+                <menu>
+                    <item
+                      android:id="@+id/settingInjectJS"
+                      android:title="@string/inject_js"
+                      android:orderInCategory="20"
+                      app:showAsAction="never"/>
+                    <item
+                      android:id="@+id/settingInjectCSS"
+                      android:title="@string/inject_css"
+                      android:orderInCategory="30"
+                      app:showAsAction="never"/>
+                </menu>
+            </item>
         </menu>
     </item>
 
