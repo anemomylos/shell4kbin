@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
+import net.easyjoin.utils.ThemeUtils;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -23,6 +24,9 @@ public class MainActivity extends AppCompatActivity
     try
     {
       super.onCreate(savedInstanceState);
+
+      ThemeUtils.setTheme(this);
+
       setContentView(MyResources.getLayout("activity_main", this));
 
       final Activity activity = this;

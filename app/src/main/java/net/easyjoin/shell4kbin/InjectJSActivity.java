@@ -17,6 +17,7 @@ import net.easyjoin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
+import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
 
 public final class InjectJSActivity extends AppCompatActivity
@@ -30,7 +31,7 @@ public final class InjectJSActivity extends AppCompatActivity
     {
       super.onCreate(savedInstanceState);
 
-      this.setTheme(MyResources.getTheme("Purple_Popup", this));
+      ThemeUtils.setTheme4Popup(this);
 
       supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
 

@@ -488,6 +488,12 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       injectJSActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       activity.getApplicationContext().startActivity(injectJSActivityIntent);
     }
+    else if(item.getItemId() == MyResources.getId("settingInjectCSS", activity))
+    {
+      Intent injectCSSActivityIntent = new Intent(activity.getApplicationContext(), InjectCSSActivity.class);
+      injectCSSActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      activity.getApplicationContext().startActivity(injectCSSActivityIntent);
+    }
     else if(item.getItemId() == MyResources.getId("smallerFont", activity))
     {
       keepMenuOpenOnSelection(item);
@@ -617,32 +623,32 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     {
       injectJS();
     }
+    if(!Miscellaneous.isEmpty(VariousUtils.getCSS2Inject()))
+    {
+      injectCSS();
+    }
   }
 
   private void injectJS()
   {
-    InputStream inputStream = null;
-    try
-    {
-      webView.loadUrl("javascript:(function() {" +
-        "var parent = document.getElementsByTagName('head').item(0);" +
-        "var script = document.createElement('script');" +
-        "script.type = 'text/javascript';" +
-        "script.innerHTML = decodeURIComponent(window.atob('" + VariousUtils.getJS2Inject() + "'));" +
-        "parent.appendChild(script)" +
-        "})()");
-    }
-    catch (Throwable t)
-    {
-      MyLog.e(className, "injectJS", t);
-    }
-    finally
-    {
-      if(inputStream != null)
-      {
-        try { inputStream.close(); } catch (Throwable t) {}
-      }
-    }
+    webView.loadUrl("javascript:(function() {" +
+      "var parent = document.getElementsByTagName('head').item(0);" +
+      "var script = document.createElement('script');" +
+      "script.type = 'text/javascript';" +
+      "script.innerHTML = decodeURIComponent(window.atob('" + VariousUtils.getJS2Inject() + "'));" +
+      "parent.appendChild(script)" +
+      "})()");
+  }
+
+  private void injectCSS()
+  {
+    webView.loadUrl("javascript:(function() {" +
+      "var parent = document.getElementsByTagName('head').item(0);" +
+      "var style = document.createElement('style');" +
+      "style.type = 'text/css';" +
+      "style.innerHTML = window.atob('" + VariousUtils.getCSS2Inject() + "');" +
+      "parent.appendChild(style)" +
+      "})()");
   }
 }
 
