@@ -52,6 +52,21 @@
       </intent-filter>
     </activity>
 
+    <activity
+      android:name="net.easyjoin.shell4kbin.InjectCSSActivity"
+      android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
+      android:excludeFromRecents="true"
+      android:label="@string/inject_css"
+      android:launchMode="singleInstance"
+      android:theme="@style/Theme.AppCompat.Light.Dialog"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.PROCESS_TEXT"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:mimeType="text/plain"/>
+      </intent-filter>
+    </activity>
+
     <uses-library
       android:name="org.apache.http.legacy"
       android:required="false" />
