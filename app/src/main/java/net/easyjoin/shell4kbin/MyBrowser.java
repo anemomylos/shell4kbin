@@ -47,7 +47,6 @@ public class MyBrowser extends WebViewClient
   public void onPageStarted(final WebView webView, final String url, Bitmap favicon)
   {
     super.onPageStarted(webView, url, favicon);
-    modelWeb.pageLoadProgress(true);
     modelWeb.addNextPage(url);
     modelWeb.setPageTitle();
   }
@@ -56,7 +55,6 @@ public class MyBrowser extends WebViewClient
   public void onPageFinished(WebView webView, String url)
   {
     super.onPageFinished(webView, url);
-    modelWeb.pageLoadProgress(false);
     modelWeb.setPageTitle();
     modelWeb.elaborateHtml();
     modelWeb.inject();

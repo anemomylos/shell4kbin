@@ -1,20 +1,23 @@
 package net.easyjoin.shell4kbin;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
+import android.text.Editable;
 import android.util.Base64;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.ValueCallback;
@@ -25,7 +28,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.easyjoin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
@@ -34,11 +39,10 @@ import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
 
-import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 {
@@ -47,22 +51,26 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   private int currentPageIndex = -1;
   private Activity activity;
   public String initialUrl;
-  private String webLayoutName;
   private String webViewName;
   private String loadingProgressName;
   private boolean isNormalView;
   private boolean isDesktopView;
   private WebView webView;
-  private ProgressBar loadingProgress;
+  private ProgressBar progressBar;;
   private TextView pageTitle;
+  private AppCompatEditText pageURL;
   private ImageButton arrowBackButton;
   private ImageButton arrowForwardButton;
   private ImageButton refreshButton;
   private ImageButton menuButton;
+  private ImageButton goURLButton;
   private PopupMenu browserMenu;
+  private View titleContainer;
+  private View urlContainer;
   private MyJavascript myJavascript;
+  private MyWebChromeClient myWebChromeClient;
   private String profileName;
-  private final String profileContainer = "a class=\\\"login\\\" href=\\\"/u/";
+  private final String profileContainer = "span class=\\\"user-name\\\">";
 
   public ModelWeb(String webViewName, Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
   {
@@ -75,10 +83,11 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
     initLayout();
     initWebView();
+    initInject();
 
     profileName = VariousUtils.readPreference(Constants.profileNameKey, "", activity);
 
-    String initialPage = "https://kbin.social/";
+    String initialPage = "https://kbin.social/top";
     if(!Miscellaneous.isEmpty(profileName))
     {
       initialPage = "https://kbin.social/sub";
@@ -92,13 +101,6 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
     //loadEmptyPage();
     loadUrl(initialPage);
-
-    String injectJSSwitch = VariousUtils.readPreference(Constants.injectJSKey, "0", activity);
-    if("1".equals(injectJSSwitch))
-    {
-      String js2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", activity);
-      VariousUtils.setJS2Inject(js2Inject);
-    }
   }
 
   public ModelWeb(String webViewName, Activity activity)
@@ -106,24 +108,26 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     this(webViewName, activity, null, false, false);
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   private void initLayout()
   {
     webView = activity.findViewById(MyResources.getId(webViewName, activity));
-    if(loadingProgressName != null)
-    {
-      loadingProgress = activity.findViewById(MyResources.getId(loadingProgressName, activity));
-      loadingProgress.getIndeterminateDrawable().setColorFilter(Color.parseColor(MyResources.getAttrValue("colorPrimary", activity)), android.graphics.PorterDuff.Mode.MULTIPLY);
-    }
     pageTitle = activity.findViewById(MyResources.getId("pageTitle", activity));
+    pageURL = activity.findViewById(MyResources.getId("pageURL", activity));
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
     refreshButton = activity.findViewById(MyResources.getId("refreshButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
+    titleContainer = activity.findViewById(MyResources.getId("titleContainer", activity));
+    urlContainer = activity.findViewById(MyResources.getId("urlContainer", activity));
+    goURLButton = activity.findViewById(MyResources.getId("goURLButton", activity));
+    progressBar = activity.findViewById(MyResources.getId("progressLoad", activity));
 
     createBrowserMenu();
     //keepMenuOpenOnSelection();
 
-    menuButton.setOnClickListener(new View.OnClickListener() {
+    menuButton.setOnClickListener(new View.OnClickListener()
+    {
       @Override
       public void onClick(View v)
       {
@@ -131,7 +135,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    refreshButton.setOnClickListener(new View.OnClickListener() {
+    refreshButton.setOnClickListener(new View.OnClickListener()
+    {
       @Override
       public void onClick(View v)
       {
@@ -139,7 +144,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    arrowBackButton.setOnClickListener(new View.OnClickListener() {
+    arrowBackButton.setOnClickListener(new View.OnClickListener()
+    {
       @Override
       public void onClick(View v)
       {
@@ -147,7 +153,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    arrowForwardButton.setOnClickListener(new View.OnClickListener() {
+    arrowForwardButton.setOnClickListener(new View.OnClickListener()
+    {
       @Override
       public void onClick(View v)
       {
@@ -155,11 +162,20 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    pageTitle.setOnLongClickListener(new View.OnLongClickListener() {
+    /*GestureDetector pageTitleGestureDetector = new GestureDetector(activity, new GestureDetector.SimpleOnGestureListener()
+    {
       @Override
-      public boolean onLongClick(View v)
+      public boolean onDoubleTap(MotionEvent e)
       {
-        if(currentPageIndex > -1)
+        titleContainer.setVisibility(View.GONE);
+        urlContainer.setVisibility(View.VISIBLE);
+        return true;
+      }
+
+      @Override
+      public void onLongPress(MotionEvent e)
+      {
+        if (currentPageIndex > -1)
         {
           String currentUrl = pagesStack.get(currentPageIndex);
           ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -167,7 +183,98 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
           clipboard.setPrimaryClip(clip);
           Toast.makeText(activity, MyResources.getString("urls_saved_clipboard", activity) + "\n\n" + currentUrl, Toast.LENGTH_SHORT).show();
         }
+      }
+
+      @Override
+      public boolean onDoubleTapEvent(MotionEvent e)
+      {
         return true;
+      }
+
+      @Override
+      public boolean onDown(MotionEvent e)
+      {
+        return true;
+      }
+    });
+
+    pageTitle.setOnTouchListener(new View.OnTouchListener()
+    {
+      @Override
+      public boolean onTouch(View v, MotionEvent event)
+      {
+        return pageTitleGestureDetector.onTouchEvent(event);
+      }
+    });*/
+
+    pageTitle.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v)
+      {
+        arrowBackButton.setVisibility(View.GONE);
+        arrowForwardButton.setVisibility(View.GONE);
+        titleContainer.setVisibility(View.GONE);
+        menuButton.setVisibility(View.GONE);
+        urlContainer.setVisibility(View.VISIBLE);
+        return true;
+      }
+    });
+
+    pageURL.setOnKeyListener(new View.OnKeyListener() {
+      public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if ( (event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER) )
+        {
+          onGoURL();
+          return true;
+        }
+        return false;
+      }
+    });
+
+    goURLButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v)
+      {
+        onGoURL();
+      }
+    });
+
+    goURLButton.setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v)
+      {
+        viewsInBar(true);
+        return true;
+      }
+    });
+
+    final SwipeRefreshLayout webViewPullToRefresh = activity.findViewById(MyResources.getId("webViewPullToRefresh", activity));
+    webViewPullToRefresh.setDistanceToTriggerSync(312);
+    webViewPullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
+    {
+      @Override
+      public void onRefresh()
+      {
+        webViewPullToRefresh.setRefreshing(true);
+        refresh();
+
+        new Thread(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            try {Thread.sleep(1500);}catch (Throwable t) {}
+
+            activity.runOnUiThread(new Runnable()
+            {
+              @Override
+              public void run()
+              {
+                webViewPullToRefresh.setRefreshing(false);
+              }
+            });
+          }
+        }).start();
       }
     });
   }
@@ -179,7 +286,8 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     webView.addJavascriptInterface(myJavascript, "HTMLOUT");
     webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
     webView.setScrollbarFadingEnabled(false);
-    webView.setWebChromeClient(new MyWebChromeClient());
+    myWebChromeClient = new MyWebChromeClient(progressBar);
+    webView.setWebChromeClient(myWebChromeClient);
 
     WebSettings webSettings = webView.getSettings();
     webSettings.setJavaScriptEnabled(true);
@@ -233,30 +341,28 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
   }
 
-  public void loadEmptyPage()
+  private void initInject()
+  {
+    String injectJSSwitch = VariousUtils.readPreference(Constants.injectJSKey, "0", activity);
+    if("1".equals(injectJSSwitch))
+    {
+      String js2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", activity);
+      VariousUtils.setJS2Inject(js2Inject);
+    }
+
+    String injectCSSSwitch = VariousUtils.readPreference(Constants.injectCSSKey, "0", activity);
+    if("1".equals(injectCSSSwitch))
+    {
+      String css2Inject = VariousUtils.readPreference(Constants.injectCSSTextKey, "", activity);
+      VariousUtils.setCSS2Inject(css2Inject);
+    }
+  }
+
+  private void loadEmptyPage()
   {
     String html = "<html><body style=\"background-color: black\"></body></html>";
     String encodedHtml = Base64.encodeToString(html.getBytes(), Base64.NO_PADDING);
     webView.loadData(encodedHtml, "text/html", "base64");
-  }
-
-  public void pageLoadProgress(boolean isProgressVisible)
-  {
-    int visibility = View.GONE;
-    if(isProgressVisible)
-    {
-      visibility = View.VISIBLE;
-      ImageButton commentIcon = (ImageButton) activity.findViewById(MyResources.getId("commentButton", activity));
-      if(commentIcon != null)
-      {
-        commentIcon.setVisibility(View.GONE);
-      }
-    }
-
-    if(loadingProgressName != null)
-    {
-      loadingProgress.setVisibility(visibility);
-    }
   }
 
   public void loadUrl(String url, Map<String, String> extraHeaders)
@@ -282,7 +388,6 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   public void reload()
   {
     webView.reload();
-    //MyInfo.showToastShort(MyResources.getString("action_refresh", activity));
   }
 
   public String getCurrentURL()
@@ -307,7 +412,6 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     {
       webView.stopLoading();
       webView.loadUrl("about:blank");
-      pageLoadProgress(false);
     }
     catch (Throwable t)
     {
@@ -338,9 +442,52 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
   }
 
+  private void onGoURL()
+  {
+    Editable text = pageURL.getText();
+    if(text != null)
+    {
+      String textValue = String.valueOf(text);
+
+      if(!Miscellaneous.isEmpty(textValue))
+      {
+        if( (!textValue.startsWith("https://")) && (!textValue.startsWith("http://")) )
+        {
+          textValue = "https://" + textValue;
+        }
+        InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(0, 0);
+        loadUrl(textValue);
+        viewsInBar(true);
+      }
+    }
+  }
+
+  private void viewsInBar(boolean isTitle)
+  {
+    if( (isTitle) && (urlContainer.getVisibility() == View.VISIBLE) )
+    {
+      urlContainer.setVisibility(View.GONE);
+      arrowBackButton.setVisibility(View.VISIBLE);
+      arrowForwardButton.setVisibility(View.VISIBLE);
+      titleContainer.setVisibility(View.VISIBLE);
+      menuButton.setVisibility(View.VISIBLE);
+    }
+    else if( (!isTitle) && (urlContainer.getVisibility() == View.GONE) )
+    {
+      arrowBackButton.setVisibility(View.GONE);
+      arrowForwardButton.setVisibility(View.GONE);
+      titleContainer.setVisibility(View.GONE);
+      menuButton.setVisibility(View.GONE);
+      urlContainer.setVisibility(View.VISIBLE);
+    }
+  }
+
   public void setPageTitle()
   {
     pageTitle.setText(webView.getTitle());
+    pageURL.setText(webView.getUrl());
+    viewsInBar(true);
   }
 
   public void addNextPage(String url)
@@ -597,17 +744,24 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
               {
                 try
                 {
+                  //MyLog.w(className, "elaborateHtml", "html: " + html);
                   int index = html.indexOf(profileContainer);
+                  //MyLog.w(className, "elaborateHtml", "index: " + index);
                   if (index != -1)
                   {
-                    int index2 = html.indexOf("\\\"", index + profileContainer.length());
-                    profileName = html.substring(index + profileContainer.length(), index2);
-
-                    if (!Miscellaneous.isEmpty(profileName))
+                    //span class=\"user-name\">anemomylos\u003C/span>
+                    int index2 = html.indexOf("\\u003C", index + profileContainer.length());
+                    if(index2 != -1)
                     {
-                      VariousUtils.savePreference(Constants.profileNameKey, profileName, activity);
+                      profileName = html.substring(index + profileContainer.length(), index2);
+                      //MyLog.w(className, "elaborateHtml", "profileName: " + profileName);
 
-                      createBrowserMenu();
+                      if (!Miscellaneous.isEmpty(profileName))
+                      {
+                        VariousUtils.savePreference(Constants.profileNameKey, profileName, activity);
+
+                        createBrowserMenu();
+                      }
                     }
                   }
                 }
