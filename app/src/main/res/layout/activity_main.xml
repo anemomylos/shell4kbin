@@ -9,11 +9,23 @@
   android:orientation="vertical"
   android:background="?attr/messageListBG">
 
-  <WebView
-    android:id="@+id/webView"
+  <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    android:id="@+id/webViewPullToRefresh"
     android:layout_width="match_parent"
     android:layout_height="0dp"
-    android:layout_weight="1"/>
+    android:layout_weight="1">
+    <WebView
+      android:id="@+id/webView"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"/>
+  </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+  <ProgressBar
+    android:id="@+id/progressLoad"
+    android:layout_width="match_parent"
+    android:layout_height="2dp"
+    style="?android:attr/progressBarStyleHorizontal"
+    android:progressTint="?attr/colorPrimaryDark"/>
 
   <androidx.appcompat.widget.LinearLayoutCompat
     android:layout_width="match_parent"
@@ -21,7 +33,8 @@
     android:orientation="horizontal"
     android:background="?attr/colorPrimary"
     android:padding="16dp"
-    android:alpha="0.80">
+    android:alpha="0.80"
+    android:animateLayoutChanges="true">
     <ImageButton
       android:id="@+id/arrowBackButton"
       android:layout_width="wrap_content"
@@ -45,6 +58,7 @@
       android:paddingRight="16dp"
       android:layout_gravity="center"/>
     <androidx.appcompat.widget.LinearLayoutCompat
+      android:id="@+id/titleContainer"
       android:layout_width="0dp"
       android:layout_height="match_parent"
       android:layout_weight="1"
@@ -66,6 +80,38 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/refresh_18"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:tint="?attr/buttonTextColor"
+        android:paddingStart="8dp"
+        android:paddingLeft="8dp"
+        android:layout_gravity="center"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+    <androidx.appcompat.widget.LinearLayoutCompat
+      android:id="@+id/urlContainer"
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:background="@drawable/bg_rounded"
+      android:layout_gravity="center"
+      android:visibility="gone">
+      <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/pageURL"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="?attr/buttonTextColor"
+        android:layout_gravity="center"
+        android:singleLine="true"
+        android:background="@drawable/bg_edittext_none"
+        android:inputType="textUri"
+        android:textCursorDrawable="@null"/>
+      <ImageButton
+        android:id="@+id/goURLButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_right_24"
         android:scaleType="fitCenter"
         android:background="@android:color/transparent"
         android:tint="?attr/buttonTextColor"

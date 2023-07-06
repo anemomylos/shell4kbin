@@ -42,7 +42,8 @@
       android:gravity="top|start"
       android:padding="4dp"
       android:scrollbars="vertical"
-      android:textColor="?attr/textColor"/>
+      android:textColor="?attr/textColor"
+      android:textCursorDrawable="@null"/>
 
     <androidx.appcompat.widget.AppCompatButton
       android:id="@+id/saveButton"
