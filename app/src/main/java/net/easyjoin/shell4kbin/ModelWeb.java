@@ -634,6 +634,10 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     {
       webView.loadUrl("https://kbin.social/top");
     }
+    else if(item.getItemId() == MyResources.getId("hotPosts", activity))
+    {
+      webView.loadUrl("https://kbin.social/hot");
+    }
     else if(item.getItemId() == MyResources.getId("moderatedMagazines", activity))
     {
       webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
