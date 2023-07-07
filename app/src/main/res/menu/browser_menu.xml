@@ -54,6 +54,12 @@
       app:showAsAction="never"/>
 
     <item
+      android:id="@+id/hotPosts"
+      android:title="@string/hot_posts"
+      android:orderInCategory="17"
+      app:showAsAction="never"/>
+
+    <item
       android:id="@+id/subscribedPosts"
       android:title="@string/subscribed_posts"
       android:orderInCategory="20"
