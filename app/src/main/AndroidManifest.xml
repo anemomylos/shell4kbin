@@ -23,7 +23,7 @@
     tools:ignore="GoogleAppIndexingWarning,ManifestResource,UnusedAttribute">
 
     <activity
-      android:name="net.easyjoin.shell4kbin.MainActivity"
+      android:name="net.easyjoin.shell4kbin.activity.MainActivity"
       android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
       android:label="@string/app_name"
       android:launchMode="singleInstance"
@@ -38,7 +38,7 @@
     </activity>
 
     <activity
-      android:name="net.easyjoin.shell4kbin.InjectJSActivity"
+      android:name="net.easyjoin.shell4kbin.activity.InjectJSActivity"
       android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
       android:excludeFromRecents="true"
       android:label="@string/inject_js"
@@ -53,10 +53,25 @@
     </activity>
 
     <activity
-      android:name="net.easyjoin.shell4kbin.InjectCSSActivity"
+      android:name="net.easyjoin.shell4kbin.activity.InjectCSSActivity"
       android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
       android:excludeFromRecents="true"
       android:label="@string/inject_css"
+      android:launchMode="singleInstance"
+      android:theme="@style/Theme.AppCompat.Light.Dialog"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.PROCESS_TEXT"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:mimeType="text/plain"/>
+      </intent-filter>
+    </activity>
+
+    <activity
+      android:name="net.easyjoin.shell4kbin.activity.SettingsActivity"
+      android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
+      android:excludeFromRecents="true"
+      android:label="@string/settings"
       android:launchMode="singleInstance"
       android:theme="@style/Theme.AppCompat.Light.Dialog"
       android:exported="true">
