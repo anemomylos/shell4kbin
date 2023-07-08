@@ -1,6 +1,7 @@
 package net.easyjoin.utils;
 
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 
@@ -8,17 +9,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Base64;
+
+import androidx.core.app.ActivityCompat;
 
 
 public final class VariousUtils
 {
-  private static final  String className = VariousUtils.class.getName();
-  private static final String sharedPreferencesName = "net.easyjoin.shell4kbin";
+  private static final String className = VariousUtils.class.getName();
 
   private static int flag4UpdateCurrent = PendingIntent.FLAG_UPDATE_CURRENT;
-  private static String js2Inject;
-  private static String css2Inject;
 
   static
   {
@@ -34,66 +33,73 @@ public final class VariousUtils
     return (res == PackageManager.PERMISSION_GRANTED);
   }
 
+  public static void requestPermission(String permission, Activity activity)
+  {
+    if(!hasPermission(permission, activity))
+    {
+      ActivityCompat.requestPermissions(activity, new String[]{permission}, 0);
+    }
+  }
+
   public static int getFlag4UpdateCurrent()
   {
     return flag4UpdateCurrent;
   }
 
-  private static SharedPreferences getSharedPreferences(Context context)
+  private static SharedPreferences getSharedPreferences(String sharedPreferencesName, Context context)
   {
     return context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
   }
 
-  public static String readPreference(String key, String defaultValue, Context context)
+  public static String readPreference(String sharedPreferencesName, String key, String defaultValue, Context context)
   {
-    SharedPreferences sharedPreferences = getSharedPreferences(context);
+    SharedPreferences sharedPreferences = getSharedPreferences(sharedPreferencesName, context);
     return sharedPreferences.getString(key, defaultValue);
   }
 
-  public static void savePreference(String key, String value, Context context)
+  public static void savePreference(String sharedPreferencesName, String key, String value, Context context)
   {
-    SharedPreferences.Editor editor = getSharedPreferences(context).edit();
+    SharedPreferences.Editor editor = getSharedPreferences(sharedPreferencesName, context).edit();
     editor.putString(key, value);
     editor.apply();
   }
 
-  public static void deletePreference(String key, Context context)
+  public static void deletePreference(String sharedPreferencesName, String key, Context context)
   {
-    SharedPreferences.Editor editor = getSharedPreferences(context).edit();
+    SharedPreferences.Editor editor = getSharedPreferences(sharedPreferencesName, context).edit();
     editor.remove(key);
     editor.apply();
   }
 
-  public static String getJS2Inject()
-  {
-    return js2Inject;
-  }
-
-  public static void setJS2Inject(String js)
-  {
-    if(js != null)
-    {
-      js2Inject = Base64.encodeToString(js.getBytes(), Base64.NO_WRAP);
-    }
-  }
-
-  public static String getCSS2Inject()
-  {
-    return css2Inject;
-  }
-
-  public static void setCSS2Inject(String css)
-  {
-    if(css != null)
-    {
-      css2Inject = Base64.encodeToString(css.getBytes(), Base64.NO_WRAP);
-    }
-  }
-
   public static void openDialogActivity(Class className, Context context)
   {
-    Intent settingsActivityIntent = new Intent(context.getApplicationContext(), className);
-    settingsActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    context.getApplicationContext().startActivity(settingsActivityIntent);
+    Intent activityIntent = new Intent(context.getApplicationContext(), className);
+    activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    context.getApplicationContext().startActivity(activityIntent);
+  }
+
+  /**
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="http" />
+    </intent>
+  </queries>
+   */
+  public static boolean intentCanBeHandled(Intent intent, Context context)
+  {
+    boolean exist = false;
+
+    try
+    {
+      PackageManager packageManager = context.getPackageManager();
+      exist = (intent.resolveActivity(packageManager) != null);
+    }
+    catch (Throwable t)
+    {
+      MyLog.e(className, "intentCanBeHandled", t);
+    }
+
+    return exist;
   }
 }

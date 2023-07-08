@@ -161,7 +161,10 @@ public final class MyLog
 
       NotificationUtils.show(notification, context, appName, notificationId2Use, false);
     }
-    catch (Throwable t) { }
+    catch (Throwable t)
+    {
+      e(className, "notification", t);
+    }
 
     return notificationId2Use;
   }

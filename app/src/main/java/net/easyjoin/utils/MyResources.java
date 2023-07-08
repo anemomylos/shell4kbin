@@ -14,7 +14,15 @@ public final class MyResources
 {
   public static String getString(String name, Context context)
   {
-    return context.getResources().getString(context.getResources().getIdentifier(name, "string", context.getPackageName()));
+    int identifier = context.getResources().getIdentifier(name, "string", context.getPackageName());
+    if(identifier > 0)
+    {
+      return context.getResources().getString(identifier);
+    }
+    else
+    {
+      return null;
+    }
   }
 
   public static int getId(String name, Context context)
