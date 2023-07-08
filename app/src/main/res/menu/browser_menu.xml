@@ -44,6 +44,11 @@
                       app:showAsAction="never"/>
                 </menu>
             </item>
+            <item
+              android:id="@+id/moreSettings"
+              android:title="@string/more_settings"
+              android:orderInCategory="30"
+              app:showAsAction="never"/>
         </menu>
     </item>
 
