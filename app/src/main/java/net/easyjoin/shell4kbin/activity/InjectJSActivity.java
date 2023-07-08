@@ -13,11 +13,13 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.SwitchCompat;
 
+import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
+import net.easyjoin.utils.TopExceptionHandler;
 import net.easyjoin.utils.VariousUtils;
 
 public final class InjectJSActivity extends AppCompatActivity
@@ -30,6 +32,8 @@ public final class InjectJSActivity extends AppCompatActivity
     try
     {
       super.onCreate(savedInstanceState);
+
+      Thread.setDefaultUncaughtExceptionHandler(new TopExceptionHandler(this));
 
       ThemeUtils.setTheme4Popup(this);
 
@@ -44,6 +48,7 @@ public final class InjectJSActivity extends AppCompatActivity
     catch (Throwable t)
     {
       MyLog.e(className, "onCreate", t);
+      MyLog.notification(className, "onCreate", this, t);
       finish();
     }
   }
@@ -53,15 +58,15 @@ public final class InjectJSActivity extends AppCompatActivity
     final Activity activity = this;
 
     SwitchCompat injectJSSwitch = findViewById(MyResources.getId("injectJSSwitch", this));
-    injectJSSwitch.setChecked(VariousUtils.readPreference(Constants.injectJSKey, "0", this).equals("1"));
+    injectJSSwitch.setChecked(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSKey, "0", this).equals("1"));
     injectJSSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
       {
-        VariousUtils.savePreference(Constants.injectJSKey, isChecked ? "1" : "0", activity);
+        VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.injectJSKey, isChecked ? "1" : "0", activity);
         if(isChecked)
         {
-          String jsText2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", activity);
+          String jsText2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSTextKey, "", activity);
           if(Miscellaneous.isEmpty(jsText2Inject))
           {
             saveJSText();
@@ -69,12 +74,12 @@ public final class InjectJSActivity extends AppCompatActivity
         }
         else
         {
-          VariousUtils.setJS2Inject("");
+          CachedValues.setJS2Inject("");
         }
       }
     });
 
-    String jsText2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", this);
+    String jsText2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSTextKey, "", this);
     if(Miscellaneous.isEmpty(jsText2Inject))
     {
       jsText2Inject = Constants.jsSource;
@@ -101,8 +106,8 @@ public final class InjectJSActivity extends AppCompatActivity
     if(text != null)
     {
       String textValue =  String.valueOf(text);
-      VariousUtils.setJS2Inject(textValue);
-      VariousUtils.savePreference(Constants.injectJSTextKey,textValue, this);
+      CachedValues.setJS2Inject(textValue);
+      VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.injectJSTextKey,textValue, this);
     }
   }
 }

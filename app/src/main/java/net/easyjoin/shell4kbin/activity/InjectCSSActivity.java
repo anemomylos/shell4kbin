@@ -13,11 +13,13 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.SwitchCompat;
 
+import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
+import net.easyjoin.utils.TopExceptionHandler;
 import net.easyjoin.utils.VariousUtils;
 
 public final class InjectCSSActivity extends AppCompatActivity
@@ -30,6 +32,8 @@ public final class InjectCSSActivity extends AppCompatActivity
     try
     {
       super.onCreate(savedInstanceState);
+
+      Thread.setDefaultUncaughtExceptionHandler(new TopExceptionHandler(this));
 
       ThemeUtils.setTheme4Popup(this);
 
@@ -44,6 +48,7 @@ public final class InjectCSSActivity extends AppCompatActivity
     catch (Throwable t)
     {
       MyLog.e(className, "onCreate", t);
+      MyLog.notification(className, "onCreate", this, t);
       finish();
     }
   }
@@ -53,15 +58,15 @@ public final class InjectCSSActivity extends AppCompatActivity
     final Activity activity = this;
 
     SwitchCompat injectCSSSwitch = findViewById(MyResources.getId("injectCSSSwitch", this));
-    injectCSSSwitch.setChecked(VariousUtils.readPreference(Constants.injectCSSKey, "0", this).equals("1"));
+    injectCSSSwitch.setChecked(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSKey, "0", this).equals("1"));
     injectCSSSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
       {
-        VariousUtils.savePreference(Constants.injectCSSKey, isChecked ? "1" : "0", activity);
+        VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.injectCSSKey, isChecked ? "1" : "0", activity);
         if(isChecked)
         {
-          String cssText2Inject = VariousUtils.readPreference(Constants.injectCSSTextKey, "", activity);
+          String cssText2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSTextKey, "", activity);
           if(Miscellaneous.isEmpty(cssText2Inject))
           {
             saveCSSText();
@@ -69,12 +74,12 @@ public final class InjectCSSActivity extends AppCompatActivity
         }
         else
         {
-          VariousUtils.setCSS2Inject("");
+          CachedValues.setCSS2Inject("");
         }
       }
     });
 
-    String cssText2Inject = VariousUtils.readPreference(Constants.injectCSSTextKey, "", this);
+    String cssText2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSTextKey, "", this);
     if(Miscellaneous.isEmpty(cssText2Inject))
     {
       cssText2Inject = Constants.cssSource;
@@ -101,8 +106,8 @@ public final class InjectCSSActivity extends AppCompatActivity
     if(text != null)
     {
       String textValue =  String.valueOf(text);
-      VariousUtils.setCSS2Inject(textValue);
-      VariousUtils.savePreference(Constants.injectCSSTextKey,textValue, this);
+      CachedValues.setCSS2Inject(textValue);
+      VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.injectCSSTextKey,textValue, this);
     }
   }
 }

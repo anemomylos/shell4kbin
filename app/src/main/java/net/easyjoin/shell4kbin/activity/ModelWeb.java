@@ -3,7 +3,9 @@ package net.easyjoin.shell4kbin.activity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.util.Base64;
@@ -25,6 +27,7 @@ import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
@@ -77,8 +80,9 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     initLayout();
     initWebView();
     initInject();
+    initSettings();
 
-    profileName = VariousUtils.readPreference(Constants.profileNameKey, "", activity);
+    profileName = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.profileNameKey, "", activity);
 
     String initialPage = "https://kbin.social/hot";
     if(!Miscellaneous.isEmpty(profileName))
@@ -322,7 +326,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       webSettings.setUserAgentString(newUA);
     }
 
-    String fontSize = VariousUtils.readPreference(Constants.fontSizeKey, "", activity);
+    String fontSize = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.fontSizeKey, "", activity);
     if(!Miscellaneous.isEmpty(fontSize))
     {
       try
@@ -336,19 +340,27 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
   private void initInject()
   {
-    String injectJSSwitch = VariousUtils.readPreference(Constants.injectJSKey, "0", activity);
+    String injectJSSwitch = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSKey, "0", activity);
     if("1".equals(injectJSSwitch))
     {
-      String js2Inject = VariousUtils.readPreference(Constants.injectJSTextKey, "", activity);
-      VariousUtils.setJS2Inject(js2Inject);
+      String js2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSTextKey, "", activity);
+      CachedValues.setJS2Inject(js2Inject);
     }
 
-    String injectCSSSwitch = VariousUtils.readPreference(Constants.injectCSSKey, "0", activity);
+    String injectCSSSwitch = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSKey, "0", activity);
     if("1".equals(injectCSSSwitch))
     {
-      String css2Inject = VariousUtils.readPreference(Constants.injectCSSTextKey, "", activity);
-      VariousUtils.setCSS2Inject(css2Inject);
+      String css2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSTextKey, "", activity);
+      CachedValues.setCSS2Inject(css2Inject);
     }
+  }
+
+  private void initSettings()
+  {
+    CachedValues.setExternalLinksDefaultBrowser(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.externalLinksDefaultBrowserKey, "0", activity).equals("1"));
+
+    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://easyjoin.net"));
+    CachedValues.setBrowserIntentCanBeHandled(VariousUtils.intentCanBeHandled(browserIntent, activity));
   }
 
   private void loadEmptyPage()
@@ -677,7 +689,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
   {
     WebSettings webSettings = webView.getSettings();
     webSettings.setDefaultFontSize(fontSize);
-    VariousUtils.savePreference(Constants.fontSizeKey, "" + fontSize, activity);
+    VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.fontSizeKey, "" + fontSize, activity);
   }
 
   public boolean backButtonPressed(int keyCode, KeyEvent event)
@@ -762,7 +774,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
 
                       if (!Miscellaneous.isEmpty(profileName))
                       {
-                        VariousUtils.savePreference(Constants.profileNameKey, profileName, activity);
+                        VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.profileNameKey, profileName, activity);
 
                         createBrowserMenu();
                       }
@@ -780,19 +792,22 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
     }
     else if ((currentUrl != null) && (currentUrl.startsWith("https://kbin.social/login")))
     {
-      VariousUtils.deletePreference(Constants.profileNameKey, activity);
+      VariousUtils.deletePreference(Constants.sharedPreferencesName, Constants.profileNameKey, activity);
     }
   }
 
-  public void inject()
+  public void inject(String url)
   {
-    if(!Miscellaneous.isEmpty(VariousUtils.getJS2Inject()))
+    if(url.startsWith("https://kbin.social"))
     {
-      injectJS();
-    }
-    if(!Miscellaneous.isEmpty(VariousUtils.getCSS2Inject()))
-    {
-      injectCSS();
+      if (!Miscellaneous.isEmpty(CachedValues.getJS2Inject()))
+      {
+        injectJS();
+      }
+      if (!Miscellaneous.isEmpty(CachedValues.getCSS2Inject()))
+      {
+        injectCSS();
+      }
     }
   }
 
@@ -802,7 +817,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       "var parent = document.getElementsByTagName('head').item(0);" +
       "var script = document.createElement('script');" +
       "script.type = 'text/javascript';" +
-      "script.innerHTML = decodeURIComponent(window.atob('" + VariousUtils.getJS2Inject() + "'));" +
+      "script.innerHTML = decodeURIComponent(window.atob('" + CachedValues.getJS2Inject() + "'));" +
       "parent.appendChild(script)" +
       "})()");
   }
@@ -813,7 +828,7 @@ public final class ModelWeb implements PopupMenu.OnMenuItemClickListener
       "var parent = document.getElementsByTagName('head').item(0);" +
       "var style = document.createElement('style');" +
       "style.type = 'text/css';" +
-      "style.innerHTML = window.atob('" + VariousUtils.getCSS2Inject() + "');" +
+      "style.innerHTML = window.atob('" + CachedValues.getCSS2Inject() + "');" +
       "parent.appendChild(style)" +
       "})()");
   }

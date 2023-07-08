@@ -7,9 +7,12 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
+import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
+import net.easyjoin.utils.TopExceptionHandler;
+import net.easyjoin.utils.VariousUtils;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -25,7 +28,11 @@ public class MainActivity extends AppCompatActivity
     {
       super.onCreate(savedInstanceState);
 
+      Thread.setDefaultUncaughtExceptionHandler(new TopExceptionHandler(this));
+
       ThemeUtils.setTheme(this);
+
+      MyLog.setAppName("Shell4Kbin");
 
       setContentView(MyResources.getLayout("activity_main", this));
 
@@ -43,6 +50,12 @@ public class MainActivity extends AppCompatActivity
           });
         }
       }).start();
+
+      if("0".equals(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.requestedPermissionPostNotificationsKey, "0", this)))
+      {
+        VariousUtils.requestPermission("android.permission.POST_NOTIFICATIONS", this);
+        VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.requestedPermissionPostNotificationsKey, "1", this);
+      }
     }
     catch (Throwable t)
     {

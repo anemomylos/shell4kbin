@@ -2,12 +2,15 @@ package net.easyjoin.shell4kbin.utils;
 
 public final class Constants
 {
+  public static final String sharedPreferencesName = "net.easyjoin.shell4kbin";
   public static final String profileNameKey = "profileName";
   public static final String injectJSKey = "injectJSKey";
   public static final String injectJSTextKey = "injectJSTextKey";
   public static final String injectCSSKey = "injectCSSKey";
   public static final String injectCSSTextKey = "injectCSSTextKey";
   public static final String fontSizeKey = "fontSizeKey";
+  public static final String  externalLinksDefaultBrowserKey = "externalLinksDefaultBrowserKey";
+  public static final String requestedPermissionPostNotificationsKey = "requestedPermissionPostNotificationsKey";
 
   /*https://greasyfork.org/en/scripts/468612-kbin-enhancement-script/code*/
   public static final String jsSource = "!function(){let e=document.createElement(\"style\");e.textContent=`\n" +

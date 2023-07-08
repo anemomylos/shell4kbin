@@ -1,16 +1,19 @@
 package net.easyjoin.shell4kbin.activity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.utils.MyLog;
 
 public class MyBrowser extends WebViewClient
 {
-  protected final String className = getClass().getName();
+  private final String className = getClass().getName();
   private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"></head><body><div style=\"text-align:center; width: 98%; margin-top: 80px\">There was an error processing the page.<br>Check your Internet connection.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button></div></body></html>";
   protected ModelWeb modelWeb;
   protected String webviewName;
@@ -24,18 +27,17 @@ public class MyBrowser extends WebViewClient
   @Override
   public boolean shouldOverrideUrlLoading(WebView webView, String url)
   {
-    return super.shouldOverrideUrlLoading(webView, url);
-    /*try
+    if( (CachedValues.isExternalLinksDefaultBrowser()) && (CachedValues.isBrowserIntentCanBeHandled()) )
     {
-      view.loadUrl(url);
-    }
-    catch(Throwable t)
-    {
-      MyLog.e(className, "shouldOverrideUrlLoading", t);
-      return false;
+      if(!url.startsWith("https://kbin."))
+      {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        webView.getContext().startActivity(browserIntent);
+        return true;
+      }
     }
 
-    return true;*/
+    return super.shouldOverrideUrlLoading(webView, url);
   }
 
   @Override
@@ -52,7 +54,7 @@ public class MyBrowser extends WebViewClient
     super.onPageFinished(webView, url);
     modelWeb.setPageTitle();
     modelWeb.elaborateHtml();
-    modelWeb.inject();
+    modelWeb.inject(url);
   }
 
   @Override
