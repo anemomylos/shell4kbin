@@ -5,7 +5,7 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
-  tools:context=".InjectJSActivity"
+  tools:context=".activity.InjectJSActivity"
   android:padding="16dp"
   android:background="?attr/listItemBG">
   <androidx.appcompat.widget.LinearLayoutCompat
