@@ -4,6 +4,7 @@ package net.easyjoin.utils;
 import android.app.PendingIntent;
 import android.content.Context;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -17,6 +18,7 @@ public final class VariousUtils
 
   private static int flag4UpdateCurrent = PendingIntent.FLAG_UPDATE_CURRENT;
   private static String js2Inject;
+  private static String css2Inject;
 
   static
   {
@@ -73,5 +75,25 @@ public final class VariousUtils
     {
       js2Inject = Base64.encodeToString(js.getBytes(), Base64.NO_WRAP);
     }
+  }
+
+  public static String getCSS2Inject()
+  {
+    return css2Inject;
+  }
+
+  public static void setCSS2Inject(String css)
+  {
+    if(css != null)
+    {
+      css2Inject = Base64.encodeToString(css.getBytes(), Base64.NO_WRAP);
+    }
+  }
+
+  public static void openDialogActivity(Class className, Context context)
+  {
+    Intent settingsActivityIntent = new Intent(context.getApplicationContext(), className);
+    settingsActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    context.getApplicationContext().startActivity(settingsActivityIntent);
   }
 }
