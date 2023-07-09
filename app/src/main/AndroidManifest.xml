@@ -51,7 +51,7 @@
       android:label="@string/inject_js"
       android:launchMode="singleInstance"
       android:theme="@style/Theme.AppCompat.Light.Dialog"
-      android:exported="true">
+      android:exported="false">
       <intent-filter>
         <action android:name="android.intent.action.PROCESS_TEXT"/>
         <category android:name="android.intent.category.DEFAULT"/>
@@ -66,7 +66,7 @@
       android:label="@string/inject_css"
       android:launchMode="singleInstance"
       android:theme="@style/Theme.AppCompat.Light.Dialog"
-      android:exported="true">
+      android:exported="false">
       <intent-filter>
         <action android:name="android.intent.action.PROCESS_TEXT"/>
         <category android:name="android.intent.category.DEFAULT"/>
@@ -81,7 +81,7 @@
       android:label="@string/settings"
       android:launchMode="singleInstance"
       android:theme="@style/Theme.AppCompat.Light.Dialog"
-      android:exported="true">
+      android:exported="false">
       <intent-filter>
         <action android:name="android.intent.action.PROCESS_TEXT"/>
         <category android:name="android.intent.category.DEFAULT"/>
