@@ -10,8 +10,8 @@ android {
         applicationId "net.easyjoin.shell4kbin"
         minSdk 16
         targetSdk 33
-        versionCode 9
-        versionName "Shell4Kbin 0.7"
+        versionCode 10
+        versionName "Shell4Kbin 0.8"
     }
 
     buildTypes {
@@ -37,5 +37,4 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    //implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 }
