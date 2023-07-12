@@ -3,6 +3,7 @@ package net.easyjoin.shell4kbin.browser;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -14,7 +15,7 @@ import net.easyjoin.utils.MyLog;
 public class MyWebViewClient extends WebViewClient
 {
   private final String className = getClass().getName();
-  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"></head><body><div style=\"text-align:center; width: 98%; margin-top: 80px\">There was an error processing the page.<br>Check your Internet connection.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button></div></body></html>";
+  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body><div style=\"text-align:center; width: 98%; margin-top: 180px\"><div id=\"urlInError\"></div>There was an error processing the page.<br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.reload()\" style=\" margin-left: 30px\">Reload</button></div></body><script>document.getElementById(\"urlInError\").innerHTML = location.href;</script></html>";
   protected BrowserModel browserModel;
   protected String webviewName;
 
@@ -60,22 +61,33 @@ public class MyWebViewClient extends WebViewClient
   @Override
   public void onReceivedError(WebView webView, int errorCode, String description, String failingUrl)
   {
-    /*try
+    try
     {
-      view.loadDataWithBaseURL("about:blank", htmlOnError, "text/html; charset=utf-8", "utf-8", null);
+      webView.loadDataWithBaseURL(failingUrl, htmlOnError, "text/html; charset=utf-8", "utf-8", failingUrl);
     }
     catch(Throwable t)
     {
-      super.onReceivedError(view, errorCode, description, failingUrl);
-    }*/
-    MyLog.e(className, "onReceivedError", "errorCode=" + errorCode + ", description=" + description + ", failingUrl=" + failingUrl);
-    super.onReceivedError(webView, errorCode, description, failingUrl);
+      super.onReceivedError(webView, errorCode, description, failingUrl);
+    }
   }
 
   @Override
   public void onReceivedError(WebView webView, WebResourceRequest req, WebResourceError rerr)
   {
-    MyLog.e(className, "onReceivedError", "rerr=" + rerr + ", failingUrl=" + req);
-    super.onReceivedError(webView, req, rerr);
+    try
+    {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      {
+        webView.loadDataWithBaseURL(req.getUrl().toString(), htmlOnError, "text/html; charset=utf-8", "utf-8", req.getUrl().toString());
+      }
+      else
+      {
+        super.onReceivedError(webView, req, rerr);
+      }
+    }
+    catch(Throwable t)
+    {
+      super.onReceivedError(webView, req, rerr);
+    }
   }
 }
