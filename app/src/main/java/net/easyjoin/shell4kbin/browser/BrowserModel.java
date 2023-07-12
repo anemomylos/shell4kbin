@@ -350,6 +350,10 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     if("1".equals(injectJSSwitch))
     {
       String js2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectJSTextKey, "", activity);
+      if(Miscellaneous.isEmpty(js2Inject))
+      {
+        js2Inject = Constants.jsSource;
+      }
       CachedValues.setJS2Inject(js2Inject);
     }
 
@@ -357,6 +361,10 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     if("1".equals(injectCSSSwitch))
     {
       String css2Inject = VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.injectCSSTextKey, "", activity);
+      if(Miscellaneous.isEmpty(css2Inject))
+      {
+        css2Inject = Constants.cssSource;
+      }
       CachedValues.setCSS2Inject(css2Inject);
     }
   }
