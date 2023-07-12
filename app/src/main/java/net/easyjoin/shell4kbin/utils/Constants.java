@@ -75,7 +75,8 @@ public final class Constants
     "\t\t`,f=document.createElement(\"div\");f.id=\"kes-version-dialog\",f.innerHTML='<div class=\"kes-version-dialog-content\">'+m+\"<br><button>Close</button></div>\",document.body.appendChild(f),document.querySelector(\"#kes-version-dialog button\").addEventListener(\"click\",()=>{document.querySelector(\"#kes-version-dialog\").remove(),localStorage.setItem(\"setting-changelog-version\",\"1.9\")})}}();const inlineSelector=\"footer figure a.thumb img\",fixedSelector=\"article figure a img\";function updateImg(e,t){var l;if(\"fixed\"==t)l=\"object-fit: cover !important\";else{var n=e.parentElement.href;e.src=n,l=\"max-width: 50% !important\"}e.style.cssText+=l}function checkItems(e){var t;t=\"fixed\"==e?\"article figure a img\":\"footer figure a.thumb img\";let l=document.querySelectorAll(t);l.forEach(t=>{updateImg(t,e)})}const imgTypes=[\"inline\",\"fixed\"];for(let i=0;i<imgTypes.length;i++)checkItems(imgTypes[i]);";
 
   public static final String cssSource = "header menu { overflow-x: scroll; max-width: 220px; overflow: visible }\n\n" +
-    "section.related-magazines, section.active-users, section.posts, section.entries, section ul.mb-2, section " +
-    "ul.meta, section div.mt-2, section h3.mt-3, section.user-list, section.entry-info, div.kbin-promo, footer " +
-    "{ display: none !important}";
+    "#sidebar .related-magazines, #sidebar .active-users, #sidebar .section.posts, #sidebar .entries, #sidebar ul.mb-2" +
+    ", #sidebar ul.meta, #sidebar div.mt-2, #sidebar h3.mt-3, #sidebar user-list, #sidebar entry-info" +
+    ", div.kbin-promo, #footer " +
+    " { display: none !important}";
 }
