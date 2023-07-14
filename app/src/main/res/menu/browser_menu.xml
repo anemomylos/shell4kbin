@@ -5,7 +5,6 @@
     tools:context=".activity.MainActivity">
 
     <item
-      android:id="@+id/settings"
       android:title="@string/settings"
       android:orderInCategory="10"
       app:showAsAction="never">
@@ -53,32 +52,83 @@
     </item>
 
     <item
-      android:id="@+id/topPosts"
-      android:title="@string/top_posts"
-      android:orderInCategory="15"
-      app:showAsAction="never"/>
-
-    <item
-      android:id="@+id/hotPosts"
-      android:title="@string/hot_posts"
-      android:orderInCategory="17"
-      app:showAsAction="never"/>
-
-    <item
-      android:id="@+id/subscribedPosts"
-      android:title="@string/subscribed_posts"
+      android:title="kbin.social"
       android:orderInCategory="20"
-      app:showAsAction="never"/>
+      app:showAsAction="never">
+        <menu>
+            <item
+              android:id="@+id/topThreadsKbin"
+              android:title="@string/top_threads"
+              android:orderInCategory="10"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/hotThreadsKbin"
+              android:title="@string/hot_threads"
+              android:orderInCategory="20"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/newThreadsKbin"
+              android:title="@string/new_threads"
+              android:orderInCategory="30"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/mblogKbin"
+              android:title="@string/microblog"
+              android:orderInCategory="40"
+              app:showAsAction="never"/>
+        </menu>
+    </item>
 
     <item
-        android:id="@+id/moderatedPosts"
-        android:title="@string/moderated_posts"
-        android:orderInCategory="25"
-        app:showAsAction="never"/>
-
-    <item
-      android:id="@+id/moderatedMagazines"
-      android:title="@string/moderated_magazines"
+      android:id="@+id/myContent"
+      android:title="@string/my_content"
       android:orderInCategory="30"
-      app:showAsAction="never"/>
+      app:showAsAction="never">
+        <menu>
+            <item
+              android:id="@+id/subscribedThreads"
+              android:title="@string/subscribed_threads"
+              android:orderInCategory="10"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/moderatedThreads"
+              android:title="@string/moderated_threads"
+              android:orderInCategory="20"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/moderatedMagazines"
+              android:title="@string/moderated_magazines"
+              android:orderInCategory="30"
+              app:showAsAction="never"/>
+        </menu>
+    </item>
+
+    <item
+      android:id="@+id/magazineContent"
+      android:title="@string/magazine"
+      android:orderInCategory="40"
+      app:showAsAction="never">
+        <menu>
+            <item
+              android:id="@+id/topThreadsMagazine"
+              android:title="@string/top_threads"
+              android:orderInCategory="10"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/hotThreadsMagazine"
+              android:title="@string/hot_threads"
+              android:orderInCategory="20"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/newThreadsMagazine"
+              android:title="@string/new_threads"
+              android:orderInCategory="30"
+              app:showAsAction="never"/>
+            <item
+              android:id="@+id/mblogMagazine"
+              android:title="@string/microblog"
+              android:orderInCategory="40"
+              app:showAsAction="never"/>
+        </menu>
+    </item>
 </menu>
