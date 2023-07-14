@@ -1,17 +1,25 @@
 package net.easyjoin.utils;
 
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
+
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.util.Log;
+import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -206,5 +214,34 @@ public final class MyLog
     }
     else
       return "";
+  }
+
+  public static void showDialog(final String msg, final boolean isDark, final Activity activity)
+  {
+    activity.runOnUiThread(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          AlertDialog.Builder dlgBuilder = new AlertDialog.Builder(activity, ThemeUtils.getAlertTheme(isDark))
+            .setMessage(msg)
+            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
+            {
+              public void onClick(DialogInterface dialog, int which)
+              {
+              }
+            })
+            .setIcon(android.R.drawable.ic_dialog_info);
+
+          AlertDialog dlg = dlgBuilder.create();
+          dlg.show();
+          TextView textView = dlg.findViewById(android.R.id.message);
+          textView.setTextIsSelectable(true);
+        }
+        catch (Throwable t) { }
+      }
+    });
   }
 }
