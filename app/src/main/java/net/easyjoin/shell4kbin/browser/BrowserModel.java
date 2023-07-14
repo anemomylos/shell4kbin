@@ -40,6 +40,7 @@ import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
+import net.easyjoin.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private MyWebChromeClient myWebChromeClient;
   private String profileName;
   private final String profileContainer = "span class=\\\"user-name\\\">";
+  private String magazineNameInView;
 
   public BrowserModel(String webViewName, Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
   {
@@ -94,7 +96,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     if(!Miscellaneous.isEmpty(profileName))
     {
       initialPage = "https://kbin.social/sub";
-      createBrowserMenu();
     }
 
     if(ThemeUtils.useBlackTheme(activity))
@@ -504,8 +505,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   public void setPageTitle()
   {
-    pageTitle.setText(webView.getTitle());
-    pageURL.setText(webView.getUrl());
+    if(!webView.getTitle().startsWith("data:text/html"))
+    {
+      pageTitle.setText(webView.getTitle());
+    }
+    if(webView.getUrl().startsWith("http"))
+    {
+      pageURL.setText(webView.getUrl());
+    }
+
     viewsInBar(true);
   }
 
@@ -600,11 +608,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     MenuInflater inflater = browserMenu.getMenuInflater();
     inflater.inflate(MyResources.getMenu("browser_menu", activity), browserMenu.getMenu());
     browserMenu.setOnMenuItemClickListener(this);
-
-    boolean existProfile = !Miscellaneous.isEmpty(profileName);
-    browserMenu.getMenu().findItem(MyResources.getId("subscribedPosts", activity)).setVisible(existProfile);
-    browserMenu.getMenu().findItem(MyResources.getId("moderatedPosts", activity)).setVisible(existProfile);
-    browserMenu.getMenu().findItem(MyResources.getId("moderatedMagazines", activity)).setVisible(existProfile);
   }
 
   private void keepMenuOpenOnSelection()
@@ -637,31 +640,91 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   private void showBrowserMenu()
   {
+    browserMenu.getMenu().findItem(MyResources.getId("myContent", activity)).setVisible(!Miscellaneous.isEmpty(profileName));
+
+    boolean showMagazineContent = (webView != null) && (webView.getUrl() != null) && (webView.getUrl().startsWith("https://kbin.social/m/"));
+    MenuItem magazineContentMenuItem = browserMenu.getMenu().findItem(MyResources.getId("magazineContent", activity));
+    magazineContentMenuItem.setTitle(MyResources.getString("magazine", activity));
+    magazineContentMenuItem.setVisible(showMagazineContent);
+    magazineNameInView = null;
+    if(showMagazineContent)
+    {
+      String[] splitsUrl = webView.getUrl().split("/m/");
+      if(splitsUrl.length == 2)
+      {
+        if(!Miscellaneous.isEmpty(splitsUrl[1]))
+        {
+          String[] splitsMagazineUrl = splitsUrl[1].split("/");
+          if(!Miscellaneous.isEmpty(splitsMagazineUrl[0]))
+          {
+            magazineNameInView = splitsMagazineUrl[0];
+            magazineContentMenuItem.setTitle("m/" + magazineNameInView);
+          }
+        }
+      }
+    }
+
     browserMenu.show();
   }
 
   @Override
   public boolean onMenuItemClick(MenuItem item)
   {
-    if(item.getItemId() == MyResources.getId("moderatedPosts", activity))
+    if(item.getItemId() == MyResources.getId("topThreadsKbin", activity))
     {
-      webView.loadUrl("https://kbin.social/mod");
+      webView.loadUrl("https://kbin.social/all/top");
     }
-    else if(item.getItemId() == MyResources.getId("subscribedPosts", activity))
+    else if(item.getItemId() == MyResources.getId("hotThreadsKbin", activity))
+    {
+      webView.loadUrl("https://kbin.social/all");
+    }
+    else if(item.getItemId() == MyResources.getId("newThreadsKbin", activity))
+    {
+      webView.loadUrl("https://kbin.social/all/newest");
+    }
+    else if(item.getItemId() == MyResources.getId("mblogKbin", activity))
+    {
+      webView.loadUrl("https://kbin.social/microblog");
+    }
+    else if(item.getItemId() == MyResources.getId("subscribedThreads", activity))
     {
       webView.loadUrl("https://kbin.social/sub");
     }
-    else if(item.getItemId() == MyResources.getId("topPosts", activity))
+    else if(item.getItemId() == MyResources.getId("moderatedThreads", activity))
     {
-      webView.loadUrl("https://kbin.social/top");
-    }
-    else if(item.getItemId() == MyResources.getId("hotPosts", activity))
-    {
-      webView.loadUrl("https://kbin.social/hot");
+      webView.loadUrl("https://kbin.social/mod");
     }
     else if(item.getItemId() == MyResources.getId("moderatedMagazines", activity))
     {
       webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
+    }
+    else if(item.getItemId() == MyResources.getId("topThreadsMagazine", activity))
+    {
+      if(!Miscellaneous.isEmpty(magazineNameInView))
+      {
+        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/top");
+      }
+    }
+    else if(item.getItemId() == MyResources.getId("hotThreadsMagazine", activity))
+    {
+      if(!Miscellaneous.isEmpty(magazineNameInView))
+      {
+        webView.loadUrl("https://kbin.social/m/" + magazineNameInView);
+      }
+    }
+    else if(item.getItemId() == MyResources.getId("newThreadsMagazine", activity))
+    {
+      if(!Miscellaneous.isEmpty(magazineNameInView))
+      {
+        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/newest");
+      }
+    }
+    else if(item.getItemId() == MyResources.getId("mblogMagazine", activity))
+    {
+      if(!Miscellaneous.isEmpty(magazineNameInView))
+      {
+        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/microblog");
+      }
     }
     else if(item.getItemId() == MyResources.getId("settingInjectJS", activity))
     {
@@ -774,9 +837,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
               {
                 try
                 {
-                  //MyLog.w(className, "elaborateHtml", html);
                   int index = html.indexOf(profileContainer);
-                  //MyLog.w(className, "elaborateHtml", "index: " + index);
                   if (index != -1)
                   {
                     //span class=\"user-name\">anemomylos\u003C/span>
@@ -784,13 +845,10 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
                     if(index2 != -1)
                     {
                       profileName = html.substring(index + profileContainer.length(), index2);
-                      //MyLog.w(className, "elaborateHtml", "profileName: " + profileName);
 
                       if (!Miscellaneous.isEmpty(profileName))
                       {
                         VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.profileNameKey, profileName, activity);
-
-                        createBrowserMenu();
                       }
                     }
                   }
@@ -820,6 +878,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
       if (!Miscellaneous.isEmpty(CachedValues.getCSS2Inject()))
       {
+        //MyLog.showDialog(new String(Base64.decode(CachedValues.getCSS2Inject(), Base64.NO_WRAP)), false, activity);
         injectCSS();
       }
     }

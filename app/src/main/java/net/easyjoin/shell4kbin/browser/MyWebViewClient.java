@@ -11,11 +11,13 @@ import android.webkit.WebViewClient;
 
 import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.utils.MyLog;
+import net.easyjoin.utils.ReplaceText;
+import net.easyjoin.utils.ThemeUtils;
 
 public class MyWebViewClient extends WebViewClient
 {
   private final String className = getClass().getName();
-  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body><div style=\"text-align:center; width: 98%; margin-top: 180px\"><div id=\"urlInError\"></div>There was an error processing the page.<br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.reload()\" style=\" margin-left: 30px\">Reload</button></div></body><script>document.getElementById(\"urlInError\").innerHTML = location.href;</script></html>";
+  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body style=\"background-color: white; color: black\"><div style=\"text-align:center; width: 98%; margin-top: 180px\">An error occurred while loading the page:<br><br><div id=\"urlInError\"></div><br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.reload()\" style=\" margin-left: 30px\">Reload</button></div></body><script>document.getElementById(\"urlInError\").innerHTML = location.href;</script></html>";
   protected BrowserModel browserModel;
   protected String webviewName;
 
@@ -63,7 +65,8 @@ public class MyWebViewClient extends WebViewClient
   {
     try
     {
-      webView.loadDataWithBaseURL(failingUrl, htmlOnError, "text/html; charset=utf-8", "utf-8", failingUrl);
+      webView.loadDataWithBaseURL(failingUrl, getErrorHtml(webView), "text/html; charset=utf-8", "utf-8", failingUrl);
+      browserModel.setPageTitle();
     }
     catch(Throwable t)
     {
@@ -78,7 +81,8 @@ public class MyWebViewClient extends WebViewClient
     {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       {
-        webView.loadDataWithBaseURL(req.getUrl().toString(), htmlOnError, "text/html; charset=utf-8", "utf-8", req.getUrl().toString());
+        webView.loadDataWithBaseURL(req.getUrl().toString(), getErrorHtml(webView), "text/html; charset=utf-8", "utf-8", req.getUrl().toString());
+        browserModel.setPageTitle();
       }
       else
       {
@@ -89,5 +93,16 @@ public class MyWebViewClient extends WebViewClient
     {
       super.onReceivedError(webView, req, rerr);
     }
+  }
+
+  private String getErrorHtml(WebView webView)
+  {
+    String html2USe = htmlOnError;
+    if(ThemeUtils.useBlackTheme(webView.getContext()))
+    {
+      html2USe = ReplaceText.replace(html2USe, "color: black", "color: white");
+      html2USe = ReplaceText.replace(html2USe, "-color: white", "-color: black");
+    }
+    return html2USe;
   }
 }
