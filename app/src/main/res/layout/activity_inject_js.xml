@@ -32,33 +32,41 @@
       android:paddingBottom="4dp"
       android:textColor="?attr/textColorOpaque"/>
 
-    <androidx.appcompat.widget.AppCompatEditText
-      android:id="@+id/jsText"
+    <androidx.appcompat.widget.LinearLayoutCompat
       android:layout_width="match_parent"
       android:layout_height="0dp"
       android:layout_weight="1"
-      android:inputType="textMultiLine"
-      android:background="@drawable/bg_rounded"
-      android:gravity="top|start"
-      android:padding="4dp"
-      android:scrollbars="vertical"
-      android:textColor="?attr/textColor"
-      android:textCursorDrawable="@null"/>
+      android:orientation="vertical"
+      android:background="@drawable/bg_rounded">
+      <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/jsText"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:inputType="textMultiLine"
+        android:gravity="top|start"
+        android:padding="4dp"
+        android:scrollbars="vertical"
+        android:textColor="?attr/textColor"
+        android:textCursorDrawable="@null"
+        android:background="@color/transparent"/>
 
-    <androidx.appcompat.widget.AppCompatButton
-      android:id="@+id/saveButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/save"
-      android:textAllCaps="false"
-      android:textColor="?attr/buttonTextColor"
-      android:background="?attr/buttonBG"
-      android:paddingStart="8dp"
-      android:paddingEnd="8dp"
-      android:layout_marginStart="8dp"
-      android:layout_marginEnd="8dp"
-      android:layout_marginTop="16dp"
-      android:layout_gravity="center"/>
+      <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save_code"
+        android:textAllCaps="false"
+        android:textColor="?attr/buttonTextColor"
+        android:background="?attr/buttonBG"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
   </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>
