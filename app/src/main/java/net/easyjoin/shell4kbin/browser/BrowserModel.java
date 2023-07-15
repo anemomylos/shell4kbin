@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.app.ShareCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.easyjoin.shell4kbin.activity.InjectCSSActivity;
@@ -65,6 +66,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private ImageButton arrowBackButton;
   private ImageButton arrowForwardButton;
   private ImageButton refreshButton;
+  private ImageButton shareButton;
   private ImageButton menuButton;
   private ImageButton goURLButton;
   private PopupMenu browserMenu;
@@ -121,6 +123,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
     refreshButton = activity.findViewById(MyResources.getId("refreshButton", activity));
+    shareButton = activity.findViewById(MyResources.getId("shareButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
     titleContainer = activity.findViewById(MyResources.getId("titleContainer", activity));
     urlContainer = activity.findViewById(MyResources.getId("urlContainer", activity));
@@ -145,6 +148,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       public void onClick(View v)
       {
         refresh();
+      }
+    });
+
+    shareButton.setOnClickListener(new View.OnClickListener()
+    {
+      @Override
+      public void onClick(View v)
+      {
+        shareURL();
       }
     });
 
@@ -517,6 +529,21 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     viewsInBar(true);
   }
 
+  public void showShareButton()
+  {
+    boolean showShare = ( (!Miscellaneous.isEmpty(webView.getUrl())) && (webView.getUrl().indexOf("/t/") != -1) );
+    if(showShare)
+    {
+      refreshButton.setVisibility(View.GONE);
+      shareButton.setVisibility(View.VISIBLE);
+    }
+    else
+    {
+      shareButton.setVisibility(View.GONE);
+      refreshButton.setVisibility(View.VISIBLE);
+    }
+  }
+
   public void addNextPage(String url)
   {
     if(!"about:blank".equals(url))
@@ -544,7 +571,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     setArrowsStatus();
   }
 
-  public void showPreviousPage()
+  private void showPreviousPage()
   {
     currentPageIndex--;
     if(currentPageIndex < 0)
@@ -558,7 +585,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     setArrowsStatus();
   }
 
-  public void showNextPage()
+  private void showNextPage()
   {
     currentPageIndex++;
     if(currentPageIndex >= pagesStack.size())
@@ -572,12 +599,22 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     setArrowsStatus();
   }
 
-  public void refresh()
+  private void refresh()
   {
     if( (currentPageIndex > -1) && (currentPageIndex < pagesStack.size()) )
     {
       webView.loadUrl(pagesStack.get(currentPageIndex));
     }
+  }
+
+  private void shareURL()
+  {
+    new ShareCompat
+      .IntentBuilder(activity)
+      .setType("text/plain")
+      .setChooserTitle(MyResources.getString("share_thread", activity))
+      .setText(webView.getUrl())
+      .startChooser();
   }
 
   private void setArrowsStatus()
