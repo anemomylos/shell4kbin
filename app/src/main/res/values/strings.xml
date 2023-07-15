@@ -29,4 +29,6 @@
     <string name="external_links_default_browser">Open external links to default browser</string>
 
     <string name="urls_saved_clipboard">URL saved to clipboard</string>
+
+    <string name="share_thread">Share thread</string>
 </resources>
