@@ -64,7 +64,8 @@
       android:layout_weight="1"
       android:orientation="horizontal"
       android:background="@drawable/bg_rounded"
-      android:layout_gravity="center">
+      android:layout_gravity="center"
+      android:animateLayoutChanges="true">
       <TextView
         android:id="@+id/pageTitle"
         android:layout_width="0dp"
@@ -86,6 +87,18 @@
         android:paddingStart="8dp"
         android:paddingLeft="8dp"
         android:layout_gravity="center"/>
+      <ImageButton
+        android:id="@+id/shareButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/share_18"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:tint="?attr/buttonTextColor"
+        android:paddingStart="8dp"
+        android:paddingLeft="8dp"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
     </androidx.appcompat.widget.LinearLayoutCompat>
     <androidx.appcompat.widget.LinearLayoutCompat
       android:id="@+id/urlContainer"
