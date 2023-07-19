@@ -17,7 +17,7 @@ import net.easyjoin.utils.ThemeUtils;
 public class MyWebViewClient extends WebViewClient
 {
   private final String className = getClass().getName();
-  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body style=\"background-color: white; color: black\"><div style=\"text-align:center; width: 98%; margin-top: 180px\">An error occurred while loading the page:<br><br><div id=\"urlInError\"></div><br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.reload()\" style=\" margin-left: 30px\">Reload</button></div></body><script>document.getElementById(\"urlInError\").innerHTML = location.href;</script></html>";
+  private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body style=\"background-color: white; color: black\"><div style=\"text-align:center; width: 98%; margin-top: 180px\">An error occurred while loading the page:<br><br><div>$urlInError$</div><br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.href = '$urlInError$'\" style=\" margin-left: 30px\">Reload</button></div></body></html>";
   protected BrowserModel browserModel;
   protected String webviewName;
 
@@ -67,7 +67,7 @@ public class MyWebViewClient extends WebViewClient
   {
     try
     {
-      webView.loadDataWithBaseURL(failingUrl, getErrorHtml(webView), "text/html; charset=utf-8", "utf-8", failingUrl);
+      webView.loadData(getErrorHtml(webView, failingUrl), "text/html; charset=utf-8", null);
       browserModel.setPageTitle();
     }
     catch(Throwable t)
@@ -77,29 +77,30 @@ public class MyWebViewClient extends WebViewClient
   }
 
   @Override
-  public void onReceivedError(WebView webView, WebResourceRequest req, WebResourceError rerr)
+  public void onReceivedError(WebView webView, WebResourceRequest req, WebResourceError error)
   {
     try
     {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       {
-        webView.loadDataWithBaseURL(req.getUrl().toString(), getErrorHtml(webView), "text/html; charset=utf-8", "utf-8", req.getUrl().toString());
+        webView.loadData(getErrorHtml(webView, req.getUrl().toString()), "text/html; charset=utf-8", null);
         browserModel.setPageTitle();
       }
       else
       {
-        super.onReceivedError(webView, req, rerr);
+        super.onReceivedError(webView, req, error);
       }
     }
     catch(Throwable t)
     {
-      super.onReceivedError(webView, req, rerr);
+      super.onReceivedError(webView, req, error);
     }
   }
 
-  private String getErrorHtml(WebView webView)
+  private String getErrorHtml(WebView webView, String url)
   {
     String html2USe = htmlOnError;
+    html2USe = ReplaceText.replace(html2USe, "$urlInError$", url);
     if(ThemeUtils.useBlackTheme(webView.getContext()))
     {
       html2USe = ReplaceText.replace(html2USe, "color: black", "color: white");

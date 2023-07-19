@@ -6,6 +6,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.ProgressBar;
 
+import net.easyjoin.utils.MyLog;
+
 public class MyWebChromeClient extends WebChromeClient
 {
   private final String className = getClass().getName();
@@ -18,7 +20,7 @@ public class MyWebChromeClient extends WebChromeClient
   @Override
   public boolean onConsoleMessage(ConsoleMessage consoleMessage)
   {
-    //MyLog.e(className, "onReceivedError", "consoleMessage: " + consoleMessage.message());
+    //MyLog.w(className, "onReceivedError", "consoleMessage: " + consoleMessage.message());
     //return super.onConsoleMessage(consoleMessage);
     return true;
   }
