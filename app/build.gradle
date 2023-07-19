@@ -10,8 +10,8 @@ android {
         applicationId "net.easyjoin.shell4kbin"
         minSdk 16
         targetSdk 33
-        versionCode 11
-        versionName "Shell4Kbin 0.9"
+        versionCode 13
+        versionName "Shell4Kbin 1.0.1"
     }
 
     buildTypes {
