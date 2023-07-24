@@ -72,6 +72,16 @@
       android:exported="false">
     </activity>
 
+    <activity
+      android:name="net.easyjoin.shell4kbin.activity.BookmarksActivity"
+      android:configChanges="orientation|screenSize|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|smallestScreenSize"
+      android:excludeFromRecents="true"
+      android:label="@string/bookmarks"
+      android:launchMode="singleInstance"
+      android:theme="@style/Theme.AppCompat.Light.Dialog"
+      android:exported="false">
+    </activity>
+
     <uses-library
       android:name="org.apache.http.legacy"
       android:required="false" />
