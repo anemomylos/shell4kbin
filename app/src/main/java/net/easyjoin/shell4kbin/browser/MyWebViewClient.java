@@ -40,6 +40,11 @@ public class MyWebViewClient extends WebViewClient
       }
     }
 
+    if(url.startsWith("https://kbin."))
+    {
+      browserModel.removeProfileName(url);
+    }
+
     return super.shouldOverrideUrlLoading(webView, url);
   }
 
@@ -47,7 +52,6 @@ public class MyWebViewClient extends WebViewClient
   public void onPageStarted(final WebView webView, final String url, Bitmap favicon)
   {
     super.onPageStarted(webView, url, favicon);
-    browserModel.showShareButton();
     browserModel.addNextPage(url);
     browserModel.setPageTitle();
   }
@@ -57,7 +61,6 @@ public class MyWebViewClient extends WebViewClient
   {
     super.onPageFinished(webView, url);
     browserModel.setPageTitle();
-    browserModel.showShareButton();
     browserModel.elaborateHtml();
     browserModel.inject(url);
   }

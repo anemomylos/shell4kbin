@@ -23,17 +23,24 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ShareCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import net.easyjoin.shell4kbin.activity.BookmarksActivity;
 import net.easyjoin.shell4kbin.activity.InjectCSSActivity;
 import net.easyjoin.shell4kbin.activity.InjectJSActivity;
 import net.easyjoin.shell4kbin.activity.SettingsActivity;
-import net.easyjoin.shell4kbin.browser.MyJavascript;
-import net.easyjoin.shell4kbin.browser.MyWebChromeClient;
-import net.easyjoin.shell4kbin.browser.MyWebViewClient;
+import net.easyjoin.shell4kbin.bookmark.BookmarkManager;
+import net.easyjoin.shell4kbin.bookmark.MyBookmark;
 import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.Miscellaneous;
@@ -41,7 +48,6 @@ import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
-import net.easyjoin.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,11 +71,12 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private AppCompatEditText pageURL;
   private ImageButton arrowBackButton;
   private ImageButton arrowForwardButton;
-  private ImageButton refreshButton;
-  private ImageButton shareButton;
+  private ImageButton moreOptionsButton;
   private ImageButton menuButton;
   private ImageButton goURLButton;
   private PopupMenu browserMenu;
+  private PopupMenu moreOptionsMenu;
+  private MenuPopupHelper moreOptionsMenuHelper;
   private View titleContainer;
   private View urlContainer;
   private MyJavascript myJavascript;
@@ -122,8 +129,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     pageURL = activity.findViewById(MyResources.getId("pageURL", activity));
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
-    refreshButton = activity.findViewById(MyResources.getId("refreshButton", activity));
-    shareButton = activity.findViewById(MyResources.getId("shareButton", activity));
+    moreOptionsButton = activity.findViewById(MyResources.getId("moreOptionsButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
     titleContainer = activity.findViewById(MyResources.getId("titleContainer", activity));
     urlContainer = activity.findViewById(MyResources.getId("urlContainer", activity));
@@ -131,7 +137,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     progressBar = activity.findViewById(MyResources.getId("progressLoad", activity));
 
     createBrowserMenu();
-    //keepMenuOpenOnSelection();
+    createMoreOptionsMenu();
 
     menuButton.setOnClickListener(new View.OnClickListener()
     {
@@ -142,21 +148,12 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    refreshButton.setOnClickListener(new View.OnClickListener()
+    moreOptionsButton.setOnClickListener(new View.OnClickListener()
     {
       @Override
       public void onClick(View v)
       {
-        refresh();
-      }
-    });
-
-    shareButton.setOnClickListener(new View.OnClickListener()
-    {
-      @Override
-      public void onClick(View v)
-      {
-        shareURL();
+        showMoreOptionsMenu();
       }
     });
 
@@ -178,52 +175,8 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    /*GestureDetector pageTitleGestureDetector = new GestureDetector(activity, new GestureDetector.SimpleOnGestureListener()
+    pageTitle.setOnLongClickListener(new View.OnLongClickListener()
     {
-      @Override
-      public boolean onDoubleTap(MotionEvent e)
-      {
-        titleContainer.setVisibility(View.GONE);
-        urlContainer.setVisibility(View.VISIBLE);
-        return true;
-      }
-
-      @Override
-      public void onLongPress(MotionEvent e)
-      {
-        if (currentPageIndex > -1)
-        {
-          String currentUrl = pagesStack.get(currentPageIndex);
-          ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-          ClipData clip = ClipData.newPlainText(MyResources.getString("app_name", activity), currentUrl);
-          clipboard.setPrimaryClip(clip);
-          Toast.makeText(activity, MyResources.getString("urls_saved_clipboard", activity) + "\n\n" + currentUrl, Toast.LENGTH_SHORT).show();
-        }
-      }
-
-      @Override
-      public boolean onDoubleTapEvent(MotionEvent e)
-      {
-        return true;
-      }
-
-      @Override
-      public boolean onDown(MotionEvent e)
-      {
-        return true;
-      }
-    });
-
-    pageTitle.setOnTouchListener(new View.OnTouchListener()
-    {
-      @Override
-      public boolean onTouch(View v, MotionEvent event)
-      {
-        return pageTitleGestureDetector.onTouchEvent(event);
-      }
-    });*/
-
-    pageTitle.setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View v)
       {
@@ -236,9 +189,11 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    pageURL.setOnKeyListener(new View.OnKeyListener() {
-      public boolean onKey(View v, int keyCode, KeyEvent event) {
-        if ( (event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER) )
+    pageURL.setOnKeyListener(new View.OnKeyListener()
+    {
+      public boolean onKey(View v, int keyCode, KeyEvent event)
+      {
+        if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER))
         {
           onGoURL();
           return true;
@@ -247,7 +202,8 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    goURLButton.setOnClickListener(new View.OnClickListener() {
+    goURLButton.setOnClickListener(new View.OnClickListener()
+    {
       @Override
       public void onClick(View v)
       {
@@ -255,7 +211,8 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    goURLButton.setOnLongClickListener(new View.OnLongClickListener() {
+    goURLButton.setOnLongClickListener(new View.OnLongClickListener()
+    {
       @Override
       public boolean onLongClick(View v)
       {
@@ -529,21 +486,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     viewsInBar(true);
   }
 
-  public void showShareButton()
-  {
-    boolean showShare = ( (!Miscellaneous.isEmpty(webView.getUrl())) && (webView.getUrl().indexOf("/t/") != -1) );
-    if(showShare)
-    {
-      refreshButton.setVisibility(View.GONE);
-      shareButton.setVisibility(View.VISIBLE);
-    }
-    else
-    {
-      shareButton.setVisibility(View.GONE);
-      refreshButton.setVisibility(View.VISIBLE);
-    }
-  }
-
   public void addNextPage(String url)
   {
     if(!"about:blank".equals(url))
@@ -579,7 +521,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       currentPageIndex = 0;
     }
 
-    //webView.loadUrl(pagesStack.get(currentPageIndex));
     webView.goBack();
 
     setArrowsStatus();
@@ -593,7 +534,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       currentPageIndex = pagesStack.size() - 1;
     }
 
-    //webView.loadUrl(pagesStack.get(currentPageIndex));
     webView.goForward();
 
     setArrowsStatus();
@@ -609,12 +549,20 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   private void shareURL()
   {
-    new ShareCompat
-      .IntentBuilder(activity)
-      .setType("text/plain")
-      .setChooserTitle(MyResources.getString("share_thread", activity))
-      .setText(webView.getUrl())
-      .startChooser();
+    VariousUtils.shareText(webView.getUrl(), activity);
+  }
+
+  private void savePage()
+  {
+    MyBookmark myBookmark = new MyBookmark();
+    myBookmark.setUrl(webView.getUrl());
+    myBookmark.setTitle(webView.getTitle());
+    if(retrieveMagazineInView())
+    {
+      myBookmark.setMagazine(magazineNameInView);
+    }
+
+    BookmarkManager.getInstance().add(myBookmark);
   }
 
   private void setArrowsStatus()
@@ -647,6 +595,18 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     browserMenu.setOnMenuItemClickListener(this);
   }
 
+  @SuppressLint("RestrictedApi")
+  private void createMoreOptionsMenu()
+  {
+    moreOptionsMenu = new PopupMenu(activity, moreOptionsButton);
+    MenuInflater inflater = moreOptionsMenu.getMenuInflater();
+    inflater.inflate(MyResources.getMenu("more_options_menu", activity), moreOptionsMenu.getMenu());
+    moreOptionsMenu.setOnMenuItemClickListener(this);
+
+    moreOptionsMenuHelper = new MenuPopupHelper(activity, (MenuBuilder) moreOptionsMenu.getMenu(), moreOptionsButton);
+    moreOptionsMenuHelper.setForceShowIcon(true);
+  }
+
   private void keepMenuOpenOnSelection()
   {
     MenuItem smallerFont = browserMenu.getMenu().findItem(MyResources.getId("smallerFont", activity));
@@ -677,14 +637,30 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   private void showBrowserMenu()
   {
-    browserMenu.getMenu().findItem(MyResources.getId("myContent", activity)).setVisible(!Miscellaneous.isEmpty(profileName));
+    boolean existProfileName = !Miscellaneous.isEmpty(profileName);
+    browserMenu.getMenu().findItem(MyResources.getId("subscribedThreads", activity)).setVisible(existProfileName);
+    browserMenu.getMenu().findItem(MyResources.getId("moderatedThreads", activity)).setVisible(existProfileName);
+    browserMenu.getMenu().findItem(MyResources.getId("moderatedMagazines", activity)).setVisible(existProfileName);
 
-    boolean showMagazineContent = (webView != null) && (webView.getUrl() != null) && (webView.getUrl().startsWith("https://kbin.social/m/"));
+    boolean isMagazineInView = retrieveMagazineInView();
     MenuItem magazineContentMenuItem = browserMenu.getMenu().findItem(MyResources.getId("magazineContent", activity));
     magazineContentMenuItem.setTitle(MyResources.getString("magazine", activity));
-    magazineContentMenuItem.setVisible(showMagazineContent);
+    magazineContentMenuItem.setVisible(isMagazineInView);
+    if(isMagazineInView)
+    {
+      magazineContentMenuItem.setTitle("m/" + magazineNameInView);
+    }
+
+    browserMenu.show();
+  }
+
+  private boolean retrieveMagazineInView()
+  {
     magazineNameInView = null;
-    if(showMagazineContent)
+
+    boolean isMagazineInView = (webView != null) && (webView.getUrl() != null) && (webView.getUrl().startsWith("https://kbin.social/m/"));
+
+    if(isMagazineInView)
     {
       String[] splitsUrl = webView.getUrl().split("/m/");
       if(splitsUrl.length == 2)
@@ -695,13 +671,19 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
           if(!Miscellaneous.isEmpty(splitsMagazineUrl[0]))
           {
             magazineNameInView = splitsMagazineUrl[0];
-            magazineContentMenuItem.setTitle("m/" + magazineNameInView);
           }
         }
       }
     }
 
-    browserMenu.show();
+    return isMagazineInView;
+  }
+
+  @SuppressLint("RestrictedApi")
+  private void showMoreOptionsMenu()
+  {
+    moreOptionsMenu.show();
+    moreOptionsMenuHelper.show();
   }
 
   @Override
@@ -734,6 +716,11 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     else if(item.getItemId() == MyResources.getId("moderatedMagazines", activity))
     {
       webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
+    }
+    else if(item.getItemId() == MyResources.getId("savedBookmarks", activity))
+    {
+      Intent intent = new Intent(activity, BookmarksActivity.class);
+      activity.startActivityForResult(intent, Constants.bookmarkUrlRequestCode);
     }
     else if(item.getItemId() == MyResources.getId("topThreadsMagazine", activity))
     {
@@ -790,6 +777,18 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     else if(item.getItemId() == MyResources.getId("moreSettings", activity))
     {
       VariousUtils.openDialogActivity(SettingsActivity.class, activity);
+    }
+    else if(item.getItemId() == MyResources.getId("shareURL", activity))
+    {
+      shareURL();
+    }
+    else if(item.getItemId() == MyResources.getId("savePage", activity))
+    {
+      savePage();
+    }
+    else if(item.getItemId() == MyResources.getId("refreshPage", activity))
+    {
+      refresh();
     }
     else
     {
@@ -899,9 +898,19 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
         }
       }
     }
-    else if ((currentUrl != null) && (currentUrl.startsWith("https://kbin.social/login")))
+    else
+    {
+      removeProfileName(currentUrl);
+    }
+  }
+
+  public void removeProfileName(String url)
+  {
+    if ( (url != null) &&
+      ( (url.startsWith("https://kbin.social/login")) || (url.startsWith("https://kbin.social/logout")) ) )
     {
       VariousUtils.deletePreference(Constants.sharedPreferencesName, Constants.profileNameKey, activity);
+      profileName = null;
     }
   }
 
