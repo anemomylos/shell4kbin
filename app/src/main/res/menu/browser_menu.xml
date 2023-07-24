@@ -101,7 +101,7 @@
               app:showAsAction="never"/>
             <item
               android:id="@+id/savedBookmarks"
-              android:title="@string/saved_pages"
+              android:title="@string/bookmarks"
               android:orderInCategory="40"
               app:showAsAction="never"/>
         </menu>
