@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:background="?attr/listItemBG"
+  app:cardElevation="?attr/listItemElevation"
+  android:layout_margin="8dp"
+  app:cardCornerRadius="2dp"
+  app:cardUseCompatPadding="false"
+  app:cardPreventCornerOverlap="false">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+      android:id="@+id/bookmarkContainer"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:padding="16dp"
+      android:clickable="true"
+      android:focusable="true"
+      android:background="?attr/listItemBG">
+        <TextView
+          android:id="@+id/bookmarkTitle"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/textColor"
+          android:textSize="15dp"/>
+        <androidx.appcompat.widget.LinearLayoutCompat
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:layout_marginTop="16dp">
+            <ImageButton
+              android:id="@+id/bookmarkMoreOptions"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:src="@drawable/more_vert_18"
+              android:background="@android:color/transparent"
+              android:tint="?attr/iconTintOpaque"
+              android:alpha=".50"
+              android:paddingRight="8dp"
+              android:paddingEnd="8dp"
+              android:layout_gravity="center"/>
+            <TextView
+              android:id="@+id/bookmarkUrl"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:textColor="?attr/listItemTextColor2"
+              android:textSize="13dp"
+              android:maxLines="1"
+              android:ellipsize="end"/>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.cardview.widget.CardView>

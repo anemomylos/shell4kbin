@@ -77,28 +77,16 @@
         android:singleLine="true"
         android:ellipsize="end"/>
       <ImageButton
-        android:id="@+id/refreshButton"
+        android:id="@+id/moreOptionsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/refresh_18"
+        android:src="@drawable/more_vert_18"
         android:scaleType="fitCenter"
         android:background="@android:color/transparent"
         android:tint="?attr/buttonTextColor"
         android:paddingStart="8dp"
         android:paddingLeft="8dp"
         android:layout_gravity="center"/>
-      <ImageButton
-        android:id="@+id/shareButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/share_18"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        android:tint="?attr/buttonTextColor"
-        android:paddingStart="8dp"
-        android:paddingLeft="8dp"
-        android:layout_gravity="center"
-        android:visibility="gone"/>
     </androidx.appcompat.widget.LinearLayoutCompat>
     <androidx.appcompat.widget.LinearLayoutCompat
       android:id="@+id/urlContainer"
