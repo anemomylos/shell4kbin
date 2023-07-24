@@ -1,0 +1,24 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+      android:id="@+id/shareURL"
+      android:title="@string/share"
+      android:icon="@drawable/share_20"
+      android:orderInCategory="10"
+      app:showAsAction="never"/>
+    <item
+      android:id="@+id/savePage"
+      android:title="@string/save"
+      android:icon="@drawable/favorite_20"
+      android:orderInCategory="20"
+      app:showAsAction="never"/>
+    <item
+      android:id="@+id/refreshPage"
+      android:title="@string/refresh"
+      android:icon="@drawable/refresh_20"
+      android:orderInCategory="30"
+      app:showAsAction="never"/>
+</menu>

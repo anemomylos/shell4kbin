@@ -1,0 +1,18 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+      android:id="@+id/shareBookmark"
+      android:title="@string/share"
+      android:icon="@drawable/share_20"
+      android:orderInCategory="10"
+      app:showAsAction="never"/>
+    <item
+      android:id="@+id/deleteBookmark"
+      android:title="@string/delete"
+      android:icon="@drawable/delete_20"
+      android:orderInCategory="20"
+      app:showAsAction="never"/>
+</menu>
