@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.ShareCompat;
 
 
 public final class VariousUtils
@@ -80,10 +81,7 @@ public final class VariousUtils
 
   /**
   <queries>
-    <intent>
-      <action android:name="android.intent.action.VIEW" />
-      <data android:scheme="http" />
-    </intent>
+    <intent> <action android:name="android.intent.action.VIEW"/> <data android:scheme="http"/> </intent>
   </queries>
    */
   public static boolean intentCanBeHandled(Intent intent, Context context)
@@ -101,5 +99,15 @@ public final class VariousUtils
     }
 
     return exist;
+  }
+
+  public static void shareText(String text, Activity activity)
+  {
+    new ShareCompat
+      .IntentBuilder(activity)
+      .setType("text/plain")
+      .setChooserTitle(MyResources.getString("share_thread", activity))
+      .setText(text)
+      .startChooser();
   }
 }
