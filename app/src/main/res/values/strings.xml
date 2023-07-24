@@ -10,6 +10,7 @@
     <string name="moderated_magazines">Moderated magazines</string>
     <string name="my_content">My content</string>
     <string name="magazine">Magazine</string>
+    <string name="saved_pages">Saved pages</string>
 
 
     <string name="settings">Settings</string>
@@ -30,5 +31,13 @@
 
     <string name="urls_saved_clipboard">URL saved to clipboard</string>
 
-    <string name="share_thread">Share thread</string>
+    <string name="share">Share</string>
+    <string name="save">Save</string>
+    <string name="refresh">Refresh</string>
+    <string name="delete">Delete</string>
+
+    <string name="bookmarks">Bookmarks</string>
+    <string name="delete_bookmark_question">Do you want to delete the bookmark \"$1\"?</string>
+    <string name="no_bookmarks">There are no bookmarks.\n\nTo add a bookmark click the icon with the three vertical dots located next to the page title and select \"Save\".</string>
+
 </resources>
