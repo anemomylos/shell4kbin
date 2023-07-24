@@ -12,6 +12,9 @@ public final class Constants
   public static final String  externalLinksDefaultBrowserKey = "externalLinksDefaultBrowserKey";
   public static final String requestedPermissionPostNotificationsKey = "requestedPermissionPostNotificationsKey";
 
+  public static final int bookmarkUrlRequestCode = 1;
+  public static final String bookmarkUrlKey = "bookmarkUrlKey";
+
   /*https://greasyfork.org/en/scripts/468612-kbin-enhancement-script/code*/
   public static final String jsSource = "!function(){let e=document.createElement(\"style\");e.textContent=`\n" +
     "    .entry figure {overflow: hidden}\n" +
