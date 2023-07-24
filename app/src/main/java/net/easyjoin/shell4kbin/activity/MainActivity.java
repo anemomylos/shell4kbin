@@ -3,11 +3,13 @@ package net.easyjoin.shell4kbin.activity;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
 import net.easyjoin.shell4kbin.browser.BrowserModel;
+import net.easyjoin.shell4kbin.start.Startup;
 import net.easyjoin.shell4kbin.utils.Constants;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity
     {
       super.onCreate(savedInstanceState);
 
+      Startup.getInstance().init(this);
+
       Thread.setDefaultUncaughtExceptionHandler(new TopExceptionHandler(this));
 
       ThemeUtils.setTheme(this);
@@ -46,7 +50,16 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run()
             {
-              browserModel = new BrowserModel("webView", activity);
+              try
+              {
+                browserModel = new BrowserModel("webView", activity);
+              }
+              catch (Throwable t)
+              {
+                MyLog.e(className, "onCreate.run", t);
+                MyLog.notification(className, "onCreate", activity, t);
+                activity.finish();
+              }
             }
           });
         }
@@ -62,10 +75,27 @@ public class MainActivity extends AppCompatActivity
     {
       MyLog.e(className, "onCreate", t);
       MyLog.notification(className, "onCreate", this, t);
-      throw t;
+      finish();
     }
   }
 
+  @Override
+  protected void onActivityResult (int requestCode, int resultCode, Intent data)
+  {
+    super.onActivityResult(requestCode, resultCode, data);
+
+    if(resultCode == Activity.RESULT_OK)
+    {
+      if (requestCode == Constants.bookmarkUrlRequestCode)
+      {
+        String url = data.getStringExtra(Constants.bookmarkUrlKey);
+        if(browserModel != null)
+        {
+          browserModel.loadUrl(url);
+        }
+      }
+    }
+  }
 
 
   @Override
