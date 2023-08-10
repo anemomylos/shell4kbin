@@ -9,16 +9,31 @@
   android:orientation="vertical"
   android:background="?attr/messageListBG">
 
-  <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    android:id="@+id/webViewPullToRefresh"
+  <androidx.appcompat.widget.LinearLayoutCompat
     android:layout_width="match_parent"
     android:layout_height="0dp"
-    android:layout_weight="1">
-    <WebView
-      android:id="@+id/webView"
+    android:layout_weight="1"
+    android:orientation="vertical">
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+      android:id="@+id/webViewMainPullToRefresh"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"/>
-  </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+      android:layout_height="match_parent">
+      <WebView
+        android:id="@+id/webViewMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+      android:id="@+id/webViewPostPullToRefresh"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:visibility="gone">
+      <WebView
+        android:id="@+id/webViewPost"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+  </androidx.appcompat.widget.LinearLayoutCompat>
 
   <ProgressBar
     android:id="@+id/progressLoad"
@@ -30,108 +45,141 @@
   <androidx.appcompat.widget.LinearLayoutCompat
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
     android:background="?attr/colorPrimary"
-    android:padding="16dp"
     android:alpha="0.80"
     android:animateLayoutChanges="true">
-    <ImageButton
-      android:id="@+id/arrowBackButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:src="@drawable/arrow_back_24"
-      android:scaleType="fitCenter"
-      android:background="@android:color/transparent"
-      android:tint="?attr/buttonTextColor"
-      android:layout_gravity="center"/>
-    <ImageButton
-      android:id="@+id/arrowForwardButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:src="@drawable/arrow_forward_24"
-      android:scaleType="fitCenter"
-      android:background="@android:color/transparent"
-      android:tint="?attr/buttonTextColor"
-      android:paddingStart="8dp"
-      android:paddingLeft="8dp"
-      android:paddingEnd="16dp"
-      android:paddingRight="16dp"
-      android:layout_gravity="center"/>
-    <androidx.appcompat.widget.LinearLayoutCompat
-      android:id="@+id/titleContainer"
-      android:layout_width="0dp"
-      android:layout_height="match_parent"
-      android:layout_weight="1"
-      android:orientation="horizontal"
-      android:background="@drawable/bg_rounded"
-      android:layout_gravity="center"
-      android:animateLayoutChanges="true">
-      <TextView
-        android:id="@+id/pageTitle"
-        android:layout_width="0dp"
+
+    <RelativeLayout
+      android:id="@+id/navigationToolbar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+      <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="?attr/buttonTextColor"
-        android:textAlignment="center"
-        android:layout_gravity="center"
-        android:singleLine="true"
-        android:ellipsize="end"/>
-      <ImageButton
-        android:id="@+id/moreOptionsButton"
-        android:layout_width="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+        <ImageButton
+          android:id="@+id/arrowBackButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/arrow_back_24"
+          android:scaleType="fitCenter"
+          android:background="@android:color/transparent"
+          android:tint="?attr/buttonTextColor"
+          android:layout_gravity="center"/>
+        <ImageButton
+          android:id="@+id/arrowForwardButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/arrow_forward_24"
+          android:scaleType="fitCenter"
+          android:background="@android:color/transparent"
+          android:tint="?attr/buttonTextColor"
+          android:paddingStart="8dp"
+          android:paddingLeft="8dp"
+          android:paddingEnd="16dp"
+          android:paddingRight="16dp"
+          android:layout_gravity="center"/>
+        <androidx.appcompat.widget.LinearLayoutCompat
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_weight="1"
+          android:orientation="horizontal"
+          android:background="@drawable/bg_rounded"
+          android:layout_gravity="center"
+          android:animateLayoutChanges="true">
+          <TextView
+            android:id="@+id/pageTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="?attr/buttonTextColor"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:singleLine="true"
+            android:ellipsize="end"/>
+          <ImageButton
+            android:id="@+id/moreOptionsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/more_vert_18"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:tint="?attr/buttonTextColor"
+            android:paddingStart="8dp"
+            android:paddingLeft="8dp"
+            android:layout_gravity="center"/>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+        <ImageButton
+          android:id="@+id/menuButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/menu_24"
+          android:scaleType="fitCenter"
+          android:background="@android:color/transparent"
+          android:tint="?attr/buttonTextColor"
+          android:paddingStart="16dp"
+          android:paddingLeft="16dp"
+          android:layout_gravity="center" />
+      </androidx.appcompat.widget.LinearLayoutCompat>
+      <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/more_vert_18"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        android:tint="?attr/buttonTextColor"
-        android:paddingStart="8dp"
-        android:paddingLeft="8dp"
-        android:layout_gravity="center"/>
-    </androidx.appcompat.widget.LinearLayoutCompat>
+        android:orientation="horizontal">
+        <TextView
+          android:id="@+id/magazineNameToolbar"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/buttonTextColor"
+          android:textAlignment="center"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:gravity="center_horizontal"
+          android:textSize="12dp"
+          android:layout_marginTop="38dp"
+          android:alpha="0.8"/>
+      </androidx.appcompat.widget.LinearLayoutCompat>
+    </RelativeLayout>
+
     <androidx.appcompat.widget.LinearLayoutCompat
-      android:id="@+id/urlContainer"
-      android:layout_width="0dp"
-      android:layout_height="match_parent"
-      android:layout_weight="1"
+      android:id="@+id/urlToolbar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
       android:orientation="horizontal"
-      android:background="@drawable/bg_rounded"
       android:layout_gravity="center"
+      android:padding="16dp"
       android:visibility="gone">
-      <androidx.appcompat.widget.AppCompatEditText
-        android:id="@+id/pageURL"
-        android:layout_width="0dp"
+      <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="?attr/buttonTextColor"
-        android:layout_gravity="center"
-        android:singleLine="true"
-        android:background="@drawable/bg_edittext_none"
-        android:inputType="textUri"
-        android:textCursorDrawable="@null"
-        android:textSize="14sp"/>
-      <ImageButton
-        android:id="@+id/goURLButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/arrow_right_24"
-        android:scaleType="fitCenter"
-        android:background="@android:color/transparent"
-        android:tint="?attr/buttonTextColor"
-        android:paddingStart="8dp"
-        android:paddingLeft="8dp"
-        android:layout_gravity="center"/>
+        android:orientation="horizontal"
+        android:background="@drawable/bg_rounded">
+        <androidx.appcompat.widget.AppCompatEditText
+          android:id="@+id/pageURL"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:textColor="?attr/buttonTextColor"
+          android:layout_gravity="center"
+          android:singleLine="true"
+          android:background="@drawable/bg_edittext_none"
+          android:inputType="textUri"
+          android:textCursorDrawable="@null"
+          android:textSize="14sp"/>
+        <ImageButton
+          android:id="@+id/goURLButton"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/arrow_right_24"
+          android:scaleType="fitCenter"
+          android:background="@android:color/transparent"
+          android:tint="?attr/buttonTextColor"
+          android:paddingStart="8dp"
+          android:paddingLeft="8dp"
+          android:layout_gravity="center"/>
+      </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
-    <ImageButton
-      android:id="@+id/menuButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:src="@drawable/menu_24"
-      android:scaleType="fitCenter"
-      android:background="@android:color/transparent"
-      android:tint="?attr/buttonTextColor"
-      android:paddingStart="16dp"
-      android:paddingLeft="16dp"
-      android:layout_gravity="center" />
+
   </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
