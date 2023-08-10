@@ -8,14 +8,12 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
-import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -23,16 +21,10 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.core.app.ShareCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.easyjoin.shell4kbin.activity.BookmarksActivity;
@@ -48,6 +40,7 @@ import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
 import net.easyjoin.utils.VariousUtils;
+import net.easyjoin.utils.WebViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,12 +54,14 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private int currentPageIndex = -1;
   private Activity activity;
   public String initialUrl;
-  private String webViewName;
   private String loadingProgressName;
   private boolean isNormalView;
   private boolean isDesktopView;
-  private WebView webView;
-  private ProgressBar progressBar;;
+  private WebView webViewMain;
+  private WebView webViewPost;
+  private SwipeRefreshLayout webViewMainPullToRefresh;
+  private SwipeRefreshLayout webViewPostPullToRefresh;
+  private ProgressBar progressBar;
   private TextView pageTitle;
   private AppCompatEditText pageURL;
   private ImageButton arrowBackButton;
@@ -77,25 +72,24 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private PopupMenu browserMenu;
   private PopupMenu moreOptionsMenu;
   private MenuPopupHelper moreOptionsMenuHelper;
-  private View titleContainer;
-  private View urlContainer;
-  private MyJavascript myJavascript;
-  private MyWebChromeClient myWebChromeClient;
+  private View navigationToolbar;
+  private View urlToolbar;
   private String profileName;
   private final String profileContainer = "span class=\\\"user-name\\\">";
   private String magazineNameInView;
+  private TextView magazineNameToolbar;
 
-  public BrowserModel(String webViewName, Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
+  public BrowserModel(Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
   {
     this.activity = activity;
-    this.webViewName = webViewName;
     this.loadingProgressName = loadingProgressName;
     this.isNormalView = isNormalView;
     this.isDesktopView = isDesktopView;
     pagesStack = new ArrayList<>();
 
     initLayout();
-    initWebView();
+    initWebView(webViewMain);
+    initWebView(webViewPost);
     initInject();
     initSettings();
 
@@ -109,33 +103,36 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
     if(ThemeUtils.useBlackTheme(activity))
     {
-      webView.setBackgroundColor(Color.BLACK);
+      webViewMain.setBackgroundColor(Color.BLACK);
+      webViewPost.setBackgroundColor(Color.BLACK);
     }
 
-    //loadEmptyPage();
-    loadUrl(initialPage);
+    loadInWebViewMain(initialPage);
   }
 
   public BrowserModel(String webViewName, Activity activity)
   {
-    this(webViewName, activity, null, false, false);
+    this(activity, null, false, false);
   }
 
   @SuppressLint("ClickableViewAccessibility")
   private void initLayout()
   {
-    webView = activity.findViewById(MyResources.getId(webViewName, activity));
+    webViewMain = activity.findViewById(MyResources.getId("webViewMain", activity));
+    webViewPost = activity.findViewById(MyResources.getId("webViewPost", activity));
+    navigationToolbar = activity.findViewById(MyResources.getId("navigationToolbar", activity));
+    urlToolbar = activity.findViewById(MyResources.getId("urlToolbar", activity));
     pageTitle = activity.findViewById(MyResources.getId("pageTitle", activity));
     pageURL = activity.findViewById(MyResources.getId("pageURL", activity));
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
     moreOptionsButton = activity.findViewById(MyResources.getId("moreOptionsButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
-    titleContainer = activity.findViewById(MyResources.getId("titleContainer", activity));
-    urlContainer = activity.findViewById(MyResources.getId("urlContainer", activity));
     goURLButton = activity.findViewById(MyResources.getId("goURLButton", activity));
     progressBar = activity.findViewById(MyResources.getId("progressLoad", activity));
+    magazineNameToolbar = activity.findViewById(MyResources.getId("magazineNameToolbar", activity));
 
+    setArrowsStatus();
     createBrowserMenu();
     createMoreOptionsMenu();
 
@@ -180,11 +177,14 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       @Override
       public boolean onLongClick(View v)
       {
-        arrowBackButton.setVisibility(View.GONE);
-        arrowForwardButton.setVisibility(View.GONE);
-        titleContainer.setVisibility(View.GONE);
-        menuButton.setVisibility(View.GONE);
-        urlContainer.setVisibility(View.VISIBLE);
+        navigationToolbar.setVisibility(View.GONE);
+        urlToolbar.setVisibility(View.VISIBLE);
+
+        pageURL.requestFocus();
+        pageURL.setSelection(pageURL.getText().length());
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(pageURL, InputMethodManager.SHOW_IMPLICIT);
+
         return true;
       }
     });
@@ -221,15 +221,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    final SwipeRefreshLayout webViewPullToRefresh = activity.findViewById(MyResources.getId("webViewPullToRefresh", activity));
-    webViewPullToRefresh.setDistanceToTriggerSync(312);
-    webViewPullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
+    webViewMainPullToRefresh = activity.findViewById(MyResources.getId("webViewMainPullToRefresh", activity));
+    webViewMainPullToRefresh.setDistanceToTriggerSync(312);
+    webViewMainPullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
     {
       @Override
       public void onRefresh()
       {
-        webViewPullToRefresh.setRefreshing(true);
-        refresh();
+        webViewMainPullToRefresh.setRefreshing(true);
+        refreshMain();
 
         new Thread(new Runnable()
         {
@@ -243,7 +243,37 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
               @Override
               public void run()
               {
-                webViewPullToRefresh.setRefreshing(false);
+                webViewMainPullToRefresh.setRefreshing(false);
+              }
+            });
+          }
+        }).start();
+      }
+    });
+
+    webViewPostPullToRefresh = activity.findViewById(MyResources.getId("webViewPostPullToRefresh", activity));
+    webViewPostPullToRefresh.setDistanceToTriggerSync(312);
+    webViewPostPullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener()
+    {
+      @Override
+      public void onRefresh()
+      {
+        webViewPostPullToRefresh.setRefreshing(true);
+        refreshPost();
+
+        new Thread(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            try {Thread.sleep(1500);}catch (Throwable t) {}
+
+            activity.runOnUiThread(new Runnable()
+            {
+              @Override
+              public void run()
+              {
+                webViewPostPullToRefresh.setRefreshing(false);
               }
             });
           }
@@ -252,15 +282,13 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     });
   }
 
-  private void initWebView()
+  private void initWebView(WebView webView)
   {
-    webView.setWebViewClient(new MyWebViewClient(this, webViewName));
-    myJavascript = new MyJavascript();
-    webView.addJavascriptInterface(myJavascript, "HTMLOUT");
+    webView.setWebViewClient(new MyWebViewClient(this));
+    webView.addJavascriptInterface( new MyJavascript(), "HTMLOUT");
     webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
     webView.setScrollbarFadingEnabled(false);
-    myWebChromeClient = new MyWebChromeClient(progressBar);
-    webView.setWebChromeClient(myWebChromeClient);
+    webView.setWebChromeClient(new MyWebChromeClient(progressBar));
 
     WebSettings webSettings = webView.getSettings();
     webSettings.setJavaScriptEnabled(true);
@@ -347,17 +375,47 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     CachedValues.setBrowserIntentCanBeHandled(VariousUtils.intentCanBeHandled(browserIntent, activity));
   }
 
-  private void loadEmptyPage()
+  public void loadInWebViewMain(String url)
   {
-    String html = "<html><body style=\"background-color: black\"></body></html>";
-    String encodedHtml = Base64.encodeToString(html.getBytes(), Base64.NO_PADDING);
-    webView.loadData(encodedHtml, "text/html", "base64");
+    WebViewUtils.cleanWebViewContent(webViewMain);
+    loadUrl(url, null, webViewMain);
+    closeWebViewPost();
   }
 
-  public void loadUrl(String url, Map<String, String> extraHeaders)
+  public void loadInWebViewPost(String url)
+  {
+    WebViewUtils.cleanWebViewContent(webViewPost);
+    webViewPost.loadUrl(url);
+    showWebViewPost();
+  }
+
+  private void showWebViewPost()
+  {
+    if(webViewPostPullToRefresh.getVisibility() == View.GONE)
+    {
+      webViewMainPullToRefresh.setVisibility(View.GONE);
+      webViewPostPullToRefresh.setVisibility(View.VISIBLE);
+    }
+  }
+
+  public void closeWebViewPost()
+  {
+    if(webViewPostPullToRefresh.getVisibility() == View.VISIBLE)
+    {
+      webViewPostPullToRefresh.setVisibility(View.GONE);
+      webViewMainPullToRefresh.setVisibility(View.VISIBLE);
+    }
+  }
+
+  private boolean isWebViewPostVisible()
+  {
+    return (webViewPostPullToRefresh.getVisibility() == View.VISIBLE);
+  }
+
+  public void loadUrl(String url, Map<String, String> extraHeaders, WebView webView)
   {
     initialUrl = url;
-    reset();
+    WebViewUtils.cleanWebViewContent(webView);
 
     if(extraHeaders != null)
     {
@@ -369,66 +427,9 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     }
   }
 
-  public void loadUrl(String url)
+  public void loadUrl(String url, WebView webView)
   {
-    loadUrl(url, null);
-  }
-
-  public void reload()
-  {
-    webView.reload();
-  }
-
-  public String getCurrentURL()
-  {
-    return webView.getUrl();
-  }
-
-  public String getCurrentURLTitle()
-  {
-    return webView.getTitle();
-  }
-
-  public void hide()
-  {
-    activity.findViewById(MyResources.getId("webLayout", activity)).setVisibility(View.GONE);
-    reset();
-  }
-
-  private synchronized void reset()
-  {
-    try
-    {
-      webView.stopLoading();
-      webView.loadUrl("about:blank");
-    }
-    catch (Throwable t)
-    {
-      MyLog.e(className, "reset", t);
-    }
-  }
-
-  public void clean()
-  {
-    reset();
-    webView.clearCache(true);
-    webView.clearFormData();
-    webView.clearSslPreferences();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1)
-    {
-      CookieManager.getInstance().removeAllCookies(null);
-      CookieManager.getInstance().flush();
-    }
-    else
-    {
-      CookieSyncManager cookieSyncMngr=CookieSyncManager.createInstance(activity);
-      cookieSyncMngr.startSync();
-      CookieManager cookieManager=CookieManager.getInstance();
-      cookieManager.removeAllCookie();
-      cookieManager.removeSessionCookie();
-      cookieSyncMngr.stopSync();
-      cookieSyncMngr.sync();
-    }
+    loadUrl(url, null, webView);
   }
 
   private void onGoURL()
@@ -446,7 +447,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
         }
         InputMethodManager inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(0, 0);
-        loadUrl(textValue);
+        loadUrl(textValue, getVisibleWebView());
         viewsInBar(true);
       }
     }
@@ -454,26 +455,22 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   private void viewsInBar(boolean isTitle)
   {
-    if( (isTitle) && (urlContainer.getVisibility() == View.VISIBLE) )
+    if( (isTitle) && (urlToolbar.getVisibility() == View.VISIBLE) )
     {
-      urlContainer.setVisibility(View.GONE);
-      arrowBackButton.setVisibility(View.VISIBLE);
-      arrowForwardButton.setVisibility(View.VISIBLE);
-      titleContainer.setVisibility(View.VISIBLE);
-      menuButton.setVisibility(View.VISIBLE);
+      urlToolbar.setVisibility(View.GONE);
+      navigationToolbar.setVisibility(View.VISIBLE);
     }
-    else if( (!isTitle) && (urlContainer.getVisibility() == View.GONE) )
+    else if( (!isTitle) && (urlToolbar.getVisibility() == View.GONE) )
     {
-      arrowBackButton.setVisibility(View.GONE);
-      arrowForwardButton.setVisibility(View.GONE);
-      titleContainer.setVisibility(View.GONE);
-      menuButton.setVisibility(View.GONE);
-      urlContainer.setVisibility(View.VISIBLE);
+      navigationToolbar.setVisibility(View.GONE);
+      urlToolbar.setVisibility(View.VISIBLE);
     }
   }
 
   public void setPageTitle()
   {
+    WebView webView = getVisibleWebView();
+
     if(!webView.getTitle().startsWith("data:text/html"))
     {
       pageTitle.setText(webView.getTitle());
@@ -481,6 +478,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     if(webView.getUrl().startsWith("http"))
     {
       pageURL.setText(webView.getUrl());
+    }
+
+    if(retrieveMagazineInView())
+    {
+      magazineNameToolbar.setText(magazineNameInView);
+    }
+    else
+    {
+      magazineNameToolbar.setText("");
     }
 
     viewsInBar(true);
@@ -521,8 +527,24 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       currentPageIndex = 0;
     }
 
-    webView.goBack();
+    if(isUrl4WebViewPost(pagesStack.get(currentPageIndex)))
+    {
+      showWebViewPost();
+      webViewPost.goBack();
+    }
+    else
+    {
+      if(isWebViewPostVisible())
+      {
+        closeWebViewPost();
+      }
+      else
+      {
+        webViewMain.goBack();
+      }
+    }
 
+    setPageTitle();
     setArrowsStatus();
   }
 
@@ -534,29 +556,53 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       currentPageIndex = pagesStack.size() - 1;
     }
 
-    webView.goForward();
+    if(isUrl4WebViewPost(pagesStack.get(currentPageIndex)))
+    {
+      showWebViewPost();
+      webViewPost.goForward();
+    }
+    else
+    {
+      if(isWebViewPostVisible())
+      {
+        closeWebViewPost();
+      }
+      else
+      {
+        webViewMain.goForward();
+      }
+    }
 
+    setPageTitle();
     setArrowsStatus();
   }
 
   private void refresh()
   {
-    if( (currentPageIndex > -1) && (currentPageIndex < pagesStack.size()) )
-    {
-      webView.loadUrl(pagesStack.get(currentPageIndex));
-    }
+    WebView webView = getVisibleWebView();
+    webView.reload();
+  }
+
+  private void refreshMain()
+  {
+    webViewMain.reload();
+  }
+
+  private void refreshPost()
+  {
+    webViewPost.reload();
   }
 
   private void shareURL()
   {
-    VariousUtils.shareText(webView.getUrl(), activity);
+    VariousUtils.shareText(getVisibleWebView().getUrl(), activity);
   }
 
   private void savePage()
   {
     MyBookmark myBookmark = new MyBookmark();
-    myBookmark.setUrl(webView.getUrl());
-    myBookmark.setTitle(webView.getTitle());
+    myBookmark.setUrl(getVisibleWebView().getUrl());
+    myBookmark.setTitle(getVisibleWebView().getTitle());
     if(retrieveMagazineInView())
     {
       myBookmark.setMagazine(magazineNameInView);
@@ -658,6 +704,8 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   {
     magazineNameInView = null;
 
+    WebView webView = getVisibleWebView();
+
     boolean isMagazineInView = (webView != null) && (webView.getUrl() != null) && (webView.getUrl().startsWith("https://kbin.social/m/"));
 
     if(isMagazineInView)
@@ -679,6 +727,22 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     return isMagazineInView;
   }
 
+  private WebView getVisibleWebView()
+  {
+    if(isWebViewPostVisible())
+    {
+      return webViewPost;
+    }
+
+    return webViewMain;
+  }
+
+  public boolean isUrl4WebViewPost(String url)
+  {
+    return ( (!url.startsWith("https://kbin.social"))
+            || ((url.startsWith("https://kbin.social/m/")) && (url.contains("/t/"))) );
+  }
+
   @SuppressLint("RestrictedApi")
   private void showMoreOptionsMenu()
   {
@@ -691,31 +755,31 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   {
     if(item.getItemId() == MyResources.getId("topThreadsKbin", activity))
     {
-      webView.loadUrl("https://kbin.social/all/top");
+      loadInWebViewMain("https://kbin.social/all/top");
     }
     else if(item.getItemId() == MyResources.getId("hotThreadsKbin", activity))
     {
-      webView.loadUrl("https://kbin.social/all");
+      loadInWebViewMain("https://kbin.social/all");
     }
     else if(item.getItemId() == MyResources.getId("newThreadsKbin", activity))
     {
-      webView.loadUrl("https://kbin.social/all/newest");
+      loadInWebViewMain("https://kbin.social/all/newest");
     }
     else if(item.getItemId() == MyResources.getId("mblogKbin", activity))
     {
-      webView.loadUrl("https://kbin.social/microblog");
+      loadInWebViewMain("https://kbin.social/microblog");
     }
     else if(item.getItemId() == MyResources.getId("subscribedThreads", activity))
     {
-      webView.loadUrl("https://kbin.social/sub");
+      loadInWebViewMain("https://kbin.social/sub");
     }
     else if(item.getItemId() == MyResources.getId("moderatedThreads", activity))
     {
-      webView.loadUrl("https://kbin.social/mod");
+      loadInWebViewMain("https://kbin.social/mod");
     }
     else if(item.getItemId() == MyResources.getId("moderatedMagazines", activity))
     {
-      webView.loadUrl("https://kbin.social/u/" + profileName + "/moderated");
+      loadInWebViewMain("https://kbin.social/u/" + profileName + "/moderated");
     }
     else if(item.getItemId() == MyResources.getId("savedBookmarks", activity))
     {
@@ -726,28 +790,28 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     {
       if(!Miscellaneous.isEmpty(magazineNameInView))
       {
-        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/top");
+        loadInWebViewMain("https://kbin.social/m/" + magazineNameInView + "/top");
       }
     }
     else if(item.getItemId() == MyResources.getId("hotThreadsMagazine", activity))
     {
       if(!Miscellaneous.isEmpty(magazineNameInView))
       {
-        webView.loadUrl("https://kbin.social/m/" + magazineNameInView);
+        loadInWebViewMain("https://kbin.social/m/" + magazineNameInView);
       }
     }
     else if(item.getItemId() == MyResources.getId("newThreadsMagazine", activity))
     {
       if(!Miscellaneous.isEmpty(magazineNameInView))
       {
-        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/newest");
+        loadInWebViewMain("https://kbin.social/m/" + magazineNameInView + "/newest");
       }
     }
     else if(item.getItemId() == MyResources.getId("mblogMagazine", activity))
     {
       if(!Miscellaneous.isEmpty(magazineNameInView))
       {
-        webView.loadUrl("https://kbin.social/m/" + magazineNameInView + "/microblog");
+        loadInWebViewMain("https://kbin.social/m/" + magazineNameInView + "/microblog");
       }
     }
     else if(item.getItemId() == MyResources.getId("settingInjectJS", activity))
@@ -761,17 +825,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     else if(item.getItemId() == MyResources.getId("smallerFont", activity))
     {
       keepMenuOpenOnSelection(item);
-      WebSettings webSettings = webView.getSettings();
-      int fontSize = webSettings.getDefaultFontSize() - 1;
-      setFontSize(fontSize);
+      setFontSize(-1, webViewMain);
+      setFontSize(-1, webViewPost);
       return false;
     }
     else if(item.getItemId() == MyResources.getId("biggerFont", activity))
     {
       keepMenuOpenOnSelection(item);
-      WebSettings webSettings = webView.getSettings();
-      int fontSize = webSettings.getDefaultFontSize() + 1;
-      setFontSize(fontSize);
+      setFontSize(1, webViewMain);
+      setFontSize(1, webViewPost);
       return false;
     }
     else if(item.getItemId() == MyResources.getId("moreSettings", activity))
@@ -798,16 +860,16 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     return true;
   }
 
-  private void setFontSize(int fontSize)
+  private void setFontSize(int step, WebView webView)
   {
-    WebSettings webSettings = webView.getSettings();
-    webSettings.setDefaultFontSize(fontSize);
+    int fontSize = webView.getSettings().getDefaultFontSize() + step;
+    webView.getSettings().setDefaultFontSize(fontSize);
     VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.fontSizeKey, "" + fontSize, activity);
   }
 
   public boolean backButtonPressed(int keyCode, KeyEvent event)
   {
-    if(urlContainer.getVisibility() == View.VISIBLE)
+    if(urlToolbar.getVisibility() == View.VISIBLE)
     {
       viewsInBar(true);
       return true;
@@ -857,6 +919,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   public void elaborateHtml()
   {
+    WebView webView = getVisibleWebView();
     String currentUrl = webView.getUrl();
 
     if (Miscellaneous.isEmpty(profileName))
@@ -916,21 +979,23 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
   public void inject(String url)
   {
+    WebView webView = getVisibleWebView();
+
     if(url.startsWith("https://kbin.social"))
     {
       if (!Miscellaneous.isEmpty(CachedValues.getJS2Inject()))
       {
-        injectJS();
+        injectJS(webView);
       }
       if (!Miscellaneous.isEmpty(CachedValues.getCSS2Inject()))
       {
         //MyLog.showDialog(new String(Base64.decode(CachedValues.getCSS2Inject(), Base64.NO_WRAP)), false, activity);
-        injectCSS();
+        injectCSS(webView);
       }
     }
   }
 
-  private void injectJS()
+  private void injectJS(WebView webView)
   {
     webView.loadUrl("javascript:(function() {" +
       "var parent = document.getElementsByTagName('head').item(0);" +
@@ -941,7 +1006,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       "})()");
   }
 
-  private void injectCSS()
+  private void injectCSS(WebView webView)
   {
     webView.loadUrl("javascript:(function() {" +
       "var parent = document.getElementsByTagName('head').item(0);" +

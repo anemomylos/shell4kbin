@@ -4,13 +4,16 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
+import android.view.View;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import net.easyjoin.shell4kbin.utils.CachedValues;
+import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
+import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ReplaceText;
 import net.easyjoin.utils.ThemeUtils;
 
@@ -18,38 +21,47 @@ public class MyWebViewClient extends WebViewClient
 {
   private final String className = getClass().getName();
   private final String htmlOnError = "<html><head><meta charset=\"UTF-8\"><title>Error on loading page</title></head><body style=\"background-color: white; color: black\"><div style=\"text-align:center; width: 98%; margin-top: 180px\">An error occurred while loading the page:<br><br><div>$urlInError$</div><br><br>Check your Internet connection and retry.</div><div style=\"text-align:center; width: 98%; margin-top: 20px\"><button onclick=\"window.history.back();\">Back</button><button onclick=\"location.href = '$urlInError$'\" style=\" margin-left: 30px\">Reload</button></div></body></html>";
-  protected BrowserModel browserModel;
-  protected String webviewName;
+  private BrowserModel browserModel;
+  private boolean inError;
+  private String passedUrl;
 
-  public MyWebViewClient(BrowserModel browserModel, String webviewName)
+  public MyWebViewClient(BrowserModel browserModel)
   {
     this.browserModel = browserModel;
-    this.webviewName = webviewName;
   }
 
   @Override
   public boolean shouldOverrideUrlLoading(WebView webView, String url)
   {
-    if( (CachedValues.isExternalLinksDefaultBrowser()) && (CachedValues.isBrowserIntentCanBeHandled()) )
+    inError = false;
+    passedUrl = url;
+
+    if( (CachedValues.isExternalLinksDefaultBrowser()) && (CachedValues.isBrowserIntentCanBeHandled()) && (!url.startsWith("https://kbin.")))
     {
-      if(!url.startsWith("https://kbin."))
+      passedUrl = null;
+      Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+      webView.getContext().startActivity(browserIntent);
+      return true;
+    }
+    else
+    {
+      if(browserModel.isUrl4WebViewPost(url))
       {
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        webView.getContext().startActivity(browserIntent);
+        browserModel.loadInWebViewPost(url);
         return true;
       }
-    }
-
-    if(url.startsWith("https://kbin."))
-    {
-      browserModel.removeProfileName(url);
+      else
+      {
+        browserModel.closeWebViewPost();
+        browserModel.removeProfileName(url);
+      }
     }
 
     return super.shouldOverrideUrlLoading(webView, url);
   }
 
   @Override
-  public void onPageStarted(final WebView webView, final String url, Bitmap favicon)
+  public void onPageStarted(WebView webView, String url, Bitmap favicon)
   {
     super.onPageStarted(webView, url, favicon);
     browserModel.addNextPage(url);
@@ -61,8 +73,11 @@ public class MyWebViewClient extends WebViewClient
   {
     super.onPageFinished(webView, url);
     browserModel.setPageTitle();
-    browserModel.elaborateHtml();
-    browserModel.inject(url);
+    if(url.startsWith("https://kbin."))
+    {
+      browserModel.elaborateHtml();
+      browserModel.inject(url);
+    }
   }
 
   @Override
@@ -70,8 +85,13 @@ public class MyWebViewClient extends WebViewClient
   {
     try
     {
-      webView.loadData(getErrorHtml(webView, failingUrl), "text/html; charset=utf-8", null);
-      browserModel.setPageTitle();
+      if( (!inError) && (failingUrl.equals(passedUrl)) )
+      {
+        webView.loadData(getErrorHtml(webView, failingUrl), "text/html; charset=utf-8", null);
+        browserModel.setPageTitle();
+      }
+
+      inError = true;
     }
     catch(Throwable t)
     {
@@ -86,13 +106,18 @@ public class MyWebViewClient extends WebViewClient
     {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
       {
-        webView.loadData(getErrorHtml(webView, req.getUrl().toString()), "text/html; charset=utf-8", null);
-        browserModel.setPageTitle();
+        if( (!inError) && (req.getUrl().toString().equals(passedUrl)) )
+        {
+          webView.loadData(getErrorHtml(webView, req.getUrl().toString()), "text/html; charset=utf-8", null);
+          browserModel.setPageTitle();
+        }
       }
       else
       {
         super.onReceivedError(webView, req, error);
       }
+
+      inError = true;
     }
     catch(Throwable t)
     {
