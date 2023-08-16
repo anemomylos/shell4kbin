@@ -27,6 +27,8 @@
     <string name="bigger_font">Bigger font</string>
 
     <string name="external_links_default_browser">Open external links to default browser</string>
+    <string name="show_reddit_links">Show reddit links</string>
+    <string name="show_reddit_links_hint">Subs names separated by comma</string>
 
     <string name="urls_saved_clipboard">URL saved to clipboard</string>
 
