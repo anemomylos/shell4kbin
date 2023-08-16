@@ -11,7 +11,7 @@ android {
         minSdk 16
         targetSdk 33
         versionCode 15
-        versionName "Shell4Kbin 1.2"
+        versionName "Shell4Kbin 1.3"
     }
 
     buildTypes {
