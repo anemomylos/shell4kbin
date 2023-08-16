@@ -13,12 +13,80 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.SwitchCompat
-      android:id="@+id/externalLinksDefaultBrowserSwitch"
+    <androidx.cardview.widget.CardView
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="@string/external_links_default_browser"
-      android:textColor="?attr/textColor"/>
+      android:background="?attr/listItemBG"
+      app:cardElevation="?attr/listItemElevation"
+      android:layout_marginLeft="2dp"
+      android:layout_marginRight="2dp"
+      android:layout_marginTop="4dp"
+      android:layout_marginBottom="4dp"
+      app:cardCornerRadius="4dp"
+      app:cardUseCompatPadding="false"
+      app:cardPreventCornerOverlap="false">
+      <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/listItemBG">
+        <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/externalLinksDefaultBrowserSwitch"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="8dp"
+          android:text="@string/external_links_default_browser"
+          android:textColor="?attr/textColor"/>
+      </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="?attr/listItemBG"
+      app:cardElevation="?attr/listItemElevation"
+      android:layout_marginLeft="2dp"
+      android:layout_marginRight="2dp"
+      android:layout_marginTop="4dp"
+      android:layout_marginBottom="4dp"
+      app:cardCornerRadius="2dp"
+      app:cardUseCompatPadding="false"
+      app:cardPreventCornerOverlap="false">
+      <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/listItemBG">
+        <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/showRedditLinksSwitch"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="8dp"
+          android:text="@string/show_reddit_links"
+          android:textColor="?attr/textColor"/>
+        <androidx.appcompat.widget.LinearLayoutCompat
+          android:id="@+id/redditLinksContainer"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:layout_marginLeft="8dp"
+          android:layout_marginRight="8dp"
+          android:visibility="gone">
+          <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/redditLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/textColor"
+            android:layout_gravity="center"
+            android:singleLine="true"
+            android:inputType="text"
+            android:textCursorDrawable="@null"
+            android:textSize="14sp"
+            android:hint="@string/show_reddit_links_hint"
+            android:textColorHint="?attr/textColorOpaque"/>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+      </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.cardview.widget.CardView>
 
   </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>
