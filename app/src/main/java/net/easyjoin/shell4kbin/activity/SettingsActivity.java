@@ -1,24 +1,20 @@
 package net.easyjoin.shell4kbin.activity;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.SwitchCompat;
 
 import net.easyjoin.shell4kbin.utils.CachedValues;
 import net.easyjoin.shell4kbin.utils.Constants;
-import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
 import net.easyjoin.utils.MyResources;
 import net.easyjoin.utils.ThemeUtils;
@@ -73,5 +69,45 @@ public final class SettingsActivity extends AppCompatActivity
         CachedValues.setBrowserIntentCanBeHandled(VariousUtils.intentCanBeHandled(browserIntent, activity));
       }
     });
+
+    SwitchCompat showRedditLinksSwitch = findViewById(MyResources.getId("showRedditLinksSwitch", this));
+    showRedditLinksSwitch.setChecked(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.showRedditLinksKey, "0", this).equals("1"));
+    setRedditLinksContainer();
+    showRedditLinksSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+      {
+        VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.showRedditLinksKey, isChecked ? "1" : "0", activity);
+        CachedValues.setShowRedditLinks(isChecked);
+        setRedditLinksContainer();
+      }
+    });
+
+    AppCompatEditText redditLinks = findViewById(MyResources.getId("redditLinks", this));
+    redditLinks.setText(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.redditLinksKey, "", this));
+  }
+
+  private void setRedditLinksContainer()
+  {
+    SwitchCompat showRedditLinksSwitch = findViewById(MyResources.getId("showRedditLinksSwitch", this));
+    View redditLinksContainer = findViewById(MyResources.getId("redditLinksContainer", this));
+    if(showRedditLinksSwitch.isChecked())
+    {
+      redditLinksContainer.setVisibility(View.VISIBLE);
+    }
+    else
+    {
+      redditLinksContainer.setVisibility(View.GONE);
+    }
+  }
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+
+    AppCompatEditText redditLinks = findViewById(MyResources.getId("redditLinks", this));
+    VariousUtils.savePreference(Constants.sharedPreferencesName, Constants.redditLinksKey, redditLinks.getText().toString(), this);
+    CachedValues.setRedditLinks(redditLinks.getText().toString());
   }
 }

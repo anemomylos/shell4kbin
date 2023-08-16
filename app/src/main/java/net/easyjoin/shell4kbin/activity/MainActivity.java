@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity
             {
               try
               {
-                browserModel = new BrowserModel("webView", activity);
+                browserModel = new BrowserModel(activity,false, false);
               }
               catch (Throwable t)
               {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         String url = data.getStringExtra(Constants.bookmarkUrlKey);
         if(browserModel != null)
         {
-          browserModel.loadUrl(url);
+          browserModel.loadInWebViewMain(url);
         }
       }
     }
