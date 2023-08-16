@@ -10,10 +10,13 @@ public final class Constants
   public static final String injectCSSTextKey = "injectCSSTextKey";
   public static final String fontSizeKey = "fontSizeKey";
   public static final String  externalLinksDefaultBrowserKey = "externalLinksDefaultBrowserKey";
+  public static final String showRedditLinksKey = "showRedditLinksKey";
+  public static final String redditLinksKey = "redditLinksKey";
   public static final String requestedPermissionPostNotificationsKey = "requestedPermissionPostNotificationsKey";
 
   public static final int bookmarkUrlRequestCode = 1;
   public static final String bookmarkUrlKey = "bookmarkUrlKey";
+  public static final int redditMenuId = 10;
 
   /*https://greasyfork.org/en/scripts/468612-kbin-enhancement-script/code*/
   public static final String jsSource = "!function(){let e=document.createElement(\"style\");e.textContent=`\n" +
@@ -44,7 +47,9 @@ public final class Constants
     "\t\t\t\t<li>Fixed markdown buttons and added \"Cancel\" when replying</li>\n" +
     "        <li>Bug Fixes</li>\n" +
     "\t\t\t</ul>\n" +
-    "\t\t`,m=document.createElement(\"div\");m.id=\"kes-version-dialog\",m.innerHTML='<div class=\"kes-version-dialog-content\">'+u+\"<br><button>Close</button></div>\",document.body.appendChild(m),document.querySelector(\"#kes-version-dialog button\").addEventListener(\"click\",()=>{document.querySelector(\"#kes-version-dialog\").remove(),localStorage.setItem(\"setting-changelog-version\",\"1.9\")})}}();";
+    "\t\t`,m=document.createElement(\"div\");m.id=\"kes-version-dialog\",m.innerHTML='<div class=\"kes-version-dialog-content\">'+u+\"<br><button>Close</button></div>\",document.body.appendChild(m),document.querySelector(\"#kes-version-dialog button\").addEventListener(\"click\",()=>{document.querySelector(\"#kes-version-dialog\").remove(),localStorage.setItem(\"setting-changelog-version\",\"1.9\")})}}();"
+    //+ "\n\n/*reddit*/ document.getElementById(\"secondary-button\").click()"
+    ;
 
   /*https://greasyfork.org/en/scripts/468612-kbin-enhancement-script/code + https://greasyfork.org/en/scripts/468938-kbin-unsquash/code*/
   public static final String jsSource2 = "!function(){let e=document.createElement(\"style\");e.textContent=`\n" +
@@ -81,5 +86,7 @@ public final class Constants
     "\n\n" +  "#sidebar .related-magazines, #sidebar .active-users, #sidebar .section.posts, #sidebar .entries, #sidebar ul.mb-2" +
     ", #sidebar ul.meta, #sidebar div.mt-2, #sidebar h3.mt-3, #sidebar user-list, #sidebar entry-info" +
     ", div.kbin-promo, #footer, div.mobile-nav " +
-    " { display: none !important}";
+    " {display: none !important}"
+    + "\n\n/*reddit*/" + " .promotedlink, #animated-container {display: none !important}"
+    ;
 }

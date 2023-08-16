@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.util.Base64;
 
+import net.easyjoin.utils.Miscellaneous;
 import net.easyjoin.utils.MyLog;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CachedValues
 {
@@ -14,6 +18,9 @@ public final class CachedValues
   private static String css2Inject;
   private static boolean externalLinksDefaultBrowser;
   private static boolean browserIntentCanBeHandled;
+  private static boolean showRedditLinks;
+  private static String redditLinks;
+  private static List<String> redditLinksList = new ArrayList<>();
 
 
   public static String getJS2Inject()
@@ -60,5 +67,44 @@ public final class CachedValues
   public static void setBrowserIntentCanBeHandled(boolean value)
   {
     browserIntentCanBeHandled = value;
+  }
+
+  public static boolean isShowRedditLinks()
+  {
+    return showRedditLinks;
+  }
+
+  public static void setShowRedditLinks(boolean showRedditLinks)
+  {
+    CachedValues.showRedditLinks = showRedditLinks;
+  }
+
+  public static String getRedditLinks()
+  {
+    return redditLinks;
+  }
+
+  public static List<String> getRedditLinksList()
+  {
+    return redditLinksList;
+  }
+
+  public static void setRedditLinks(String redditLinks)
+  {
+    CachedValues.redditLinks = redditLinks;
+    redditLinksList.clear();
+
+    if(!Miscellaneous.isEmpty(redditLinks))
+    {
+      String[] links = redditLinks.split(",");
+      for (String link : links)
+      {
+        link = link.trim();
+        if(!Miscellaneous.isEmpty(link))
+        {
+          redditLinksList.add(link);
+        }
+      }
+    }
   }
 }
