@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,6 +45,7 @@ import net.easyjoin.utils.WebViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -54,7 +56,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private int currentPageIndex = -1;
   private Activity activity;
   public String initialUrl;
-  private String loadingProgressName;
   private boolean isNormalView;
   private boolean isDesktopView;
   private WebView webViewMain;
@@ -79,10 +80,9 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private String magazineNameInView;
   private TextView magazineNameToolbar;
 
-  public BrowserModel(Activity activity, String loadingProgressName, boolean isNormalView, boolean isDesktopView)
+  public BrowserModel(Activity activity, boolean isNormalView, boolean isDesktopView)
   {
     this.activity = activity;
-    this.loadingProgressName = loadingProgressName;
     this.isNormalView = isNormalView;
     this.isDesktopView = isDesktopView;
     pagesStack = new ArrayList<>();
@@ -108,11 +108,6 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     }
 
     loadInWebViewMain(initialPage);
-  }
-
-  public BrowserModel(String webViewName, Activity activity)
-  {
-    this(activity, null, false, false);
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -326,7 +321,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
     if (isDesktopView)
     {
-      String newUA = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0";
+      String newUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0";
       webSettings.setUserAgentString(newUA);
     }
 
@@ -373,6 +368,10 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://easyjoin.net"));
     CachedValues.setBrowserIntentCanBeHandled(VariousUtils.intentCanBeHandled(browserIntent, activity));
+
+    CachedValues.setShowRedditLinks(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.showRedditLinksKey, "0", activity).equals("1"));
+
+    CachedValues.setRedditLinks(VariousUtils.readPreference(Constants.sharedPreferencesName, Constants.redditLinksKey, "", activity));
   }
 
   public void loadInWebViewMain(String url)
@@ -387,6 +386,11 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     WebViewUtils.cleanWebViewContent(webViewPost);
     webViewPost.loadUrl(url);
     showWebViewPost();
+
+    if (isShowUrlInExternalBrowser(url))
+    {
+      closeWebViewPost();
+    }
   }
 
   private void showWebViewPost()
@@ -471,11 +475,11 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   {
     WebView webView = getVisibleWebView();
 
-    if(!webView.getTitle().startsWith("data:text/html"))
+    if( (webView.getTitle() != null) && (!webView.getTitle().startsWith("data:text/html")) )
     {
       pageTitle.setText(webView.getTitle());
     }
-    if(webView.getUrl().startsWith("http"))
+    if( (webView.getUrl() != null) &&  (webView.getUrl().startsWith("http")) )
     {
       pageURL.setText(webView.getUrl());
     }
@@ -498,7 +502,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     {
       if (currentPageIndex > -1)
       {
-        if (!pagesStack.get(currentPageIndex).equals(url))
+        if (!pagesStack.get(currentPageIndex).equalsIgnoreCase(url))
         {
           currentPageIndex++;
           pagesStack.add(currentPageIndex, url);
@@ -519,7 +523,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     setArrowsStatus();
   }
 
-  private void showPreviousPage()
+  private synchronized void showPreviousPage()
   {
     currentPageIndex--;
     if(currentPageIndex < 0)
@@ -527,13 +531,19 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       currentPageIndex = 0;
     }
 
-    if(isUrl4WebViewPost(pagesStack.get(currentPageIndex)))
+    String previousUrl = pagesStack.get(currentPageIndex);
+
+    if(isUrl4WebViewPost(previousUrl))
     {
+      webViewMain.stopLoading();
+      webViewPost.stopLoading();
       showWebViewPost();
       webViewPost.goBack();
     }
     else
     {
+      webViewMain.stopLoading();
+      webViewPost.stopLoading();
       if(isWebViewPostVisible())
       {
         closeWebViewPost();
@@ -548,7 +558,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     setArrowsStatus();
   }
 
-  private void showNextPage()
+  private synchronized void showNextPage()
   {
     currentPageIndex++;
     if(currentPageIndex >= pagesStack.size())
@@ -558,11 +568,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
     if(isUrl4WebViewPost(pagesStack.get(currentPageIndex)))
     {
+      webViewMain.stopLoading();
+      webViewPost.stopLoading();
       showWebViewPost();
       webViewPost.goForward();
     }
     else
     {
+      webViewMain.stopLoading();
+      webViewPost.stopLoading();
       if(isWebViewPostVisible())
       {
         closeWebViewPost();
@@ -609,6 +623,11 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     }
 
     BookmarkManager.getInstance().add(myBookmark);
+  }
+
+  public boolean isShowUrlInExternalBrowser(String url)
+  {
+    return ( (CachedValues.isExternalLinksDefaultBrowser()) && (CachedValues.isBrowserIntentCanBeHandled()) && (!url.startsWith("https://kbin.")) );
   }
 
   private void setArrowsStatus()
@@ -687,6 +706,19 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     browserMenu.getMenu().findItem(MyResources.getId("subscribedThreads", activity)).setVisible(existProfileName);
     browserMenu.getMenu().findItem(MyResources.getId("moderatedThreads", activity)).setVisible(existProfileName);
     browserMenu.getMenu().findItem(MyResources.getId("moderatedMagazines", activity)).setVisible(existProfileName);
+
+    boolean existRedditLinks = (CachedValues.isShowRedditLinks() && !CachedValues.getRedditLinksList().isEmpty());
+    browserMenu.getMenu().findItem(MyResources.getId("redditMenu", activity)).setVisible(existRedditLinks);
+    if(existRedditLinks)
+    {
+      Menu redditMenu = browserMenu.getMenu().findItem(MyResources.getId("redditMenu", activity)).getSubMenu();
+      redditMenu.clear();
+      List<String> links = CachedValues.getRedditLinksList();
+      for(int i = 0; i < links.size(); i++)
+      {
+        redditMenu.add(Constants.redditMenuId, i, Menu.NONE, links.get(i));
+      }
+    }
 
     boolean isMagazineInView = retrieveMagazineInView();
     MenuItem magazineContentMenuItem = browserMenu.getMenu().findItem(MyResources.getId("magazineContent", activity));
@@ -852,6 +884,12 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     {
       refresh();
     }
+    else if(item.getGroupId() == Constants.redditMenuId)
+    {
+      int index = item.getItemId();
+      MyLog.w(className, "", "index: " + index);
+      loadInWebViewPost("https://www.reddit.com/r/" + CachedValues.getRedditLinksList().get(index) + "/");
+    }
     else
     {
       return false;
@@ -981,17 +1019,14 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   {
     WebView webView = getVisibleWebView();
 
-    if(url.startsWith("https://kbin.social"))
+    if (!Miscellaneous.isEmpty(CachedValues.getJS2Inject()))
     {
-      if (!Miscellaneous.isEmpty(CachedValues.getJS2Inject()))
-      {
-        injectJS(webView);
-      }
-      if (!Miscellaneous.isEmpty(CachedValues.getCSS2Inject()))
-      {
-        //MyLog.showDialog(new String(Base64.decode(CachedValues.getCSS2Inject(), Base64.NO_WRAP)), false, activity);
-        injectCSS(webView);
-      }
+      injectJS(webView);
+    }
+    if (!Miscellaneous.isEmpty(CachedValues.getCSS2Inject()))
+    {
+      //MyLog.showDialog(new String(android.util.Base64.decode(CachedValues.getCSS2Inject(), android.util.Base64.NO_WRAP)), false, activity); //for test
+      injectCSS(webView);
     }
   }
 

@@ -36,7 +36,7 @@ public class MyWebViewClient extends WebViewClient
     inError = false;
     passedUrl = url;
 
-    if( (CachedValues.isExternalLinksDefaultBrowser()) && (CachedValues.isBrowserIntentCanBeHandled()) && (!url.startsWith("https://kbin.")))
+    if(browserModel.isShowUrlInExternalBrowser(url))
     {
       passedUrl = null;
       Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -73,10 +73,10 @@ public class MyWebViewClient extends WebViewClient
   {
     super.onPageFinished(webView, url);
     browserModel.setPageTitle();
+    browserModel.inject(url);
     if(url.startsWith("https://kbin."))
     {
       browserModel.elaborateHtml();
-      browserModel.inject(url);
     }
   }
 
