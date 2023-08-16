@@ -79,6 +79,15 @@
     </item>
 
     <item
+      android:id="@+id/redditMenu"
+      android:title="reddit"
+      android:orderInCategory="25"
+      app:showAsAction="never">
+        <menu>
+        </menu>
+    </item>
+
+    <item
       android:id="@+id/myContent"
       android:title="@string/my_content"
       android:orderInCategory="30"
