@@ -99,7 +99,7 @@
             android:singleLine="true"
             android:ellipsize="end"/>
           <ImageButton
-            android:id="@+id/moreOptionsButton"
+            android:id="@+id/toolbarUrlButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/more_vert_18"
