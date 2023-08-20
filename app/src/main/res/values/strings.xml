@@ -33,7 +33,11 @@
     <string name="urls_saved_clipboard">URL saved to clipboard</string>
 
     <string name="share">Share</string>
+    <string name="share_url">Share URL</string>
+    <string name="share_image_url">Share image URL</string>
     <string name="save">Save</string>
+    <string name="download">Download</string>
+    <string name="download_image">Download image</string>
     <string name="refresh">Refresh</string>
     <string name="delete">Delete</string>
 
