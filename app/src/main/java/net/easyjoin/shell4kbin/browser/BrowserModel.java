@@ -1,27 +1,36 @@
 package net.easyjoin.shell4kbin.browser;
 
+import static android.content.Context.DOWNLOAD_SERVICE;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.text.Editable;
+import android.view.ContextMenu;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ImageButton;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.appcompat.widget.AppCompatEditText;
@@ -45,7 +54,6 @@ import net.easyjoin.utils.WebViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -67,12 +75,12 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   private AppCompatEditText pageURL;
   private ImageButton arrowBackButton;
   private ImageButton arrowForwardButton;
-  private ImageButton moreOptionsButton;
+  private ImageButton toolbarUrlButton;
   private ImageButton menuButton;
   private ImageButton goURLButton;
   private PopupMenu browserMenu;
-  private PopupMenu moreOptionsMenu;
-  private MenuPopupHelper moreOptionsMenuHelper;
+  private PopupMenu toolbarUrlMenu;
+  private MenuPopupHelper toolbarUrlMenuHelper;
   private View navigationToolbar;
   private View urlToolbar;
   private String profileName;
@@ -121,7 +129,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     pageURL = activity.findViewById(MyResources.getId("pageURL", activity));
     arrowBackButton = activity.findViewById(MyResources.getId("arrowBackButton", activity));
     arrowForwardButton = activity.findViewById(MyResources.getId("arrowForwardButton", activity));
-    moreOptionsButton = activity.findViewById(MyResources.getId("moreOptionsButton", activity));
+    toolbarUrlButton = activity.findViewById(MyResources.getId("toolbarUrlButton", activity));
     menuButton = activity.findViewById(MyResources.getId("menuButton", activity));
     goURLButton = activity.findViewById(MyResources.getId("goURLButton", activity));
     progressBar = activity.findViewById(MyResources.getId("progressLoad", activity));
@@ -129,7 +137,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
 
     setArrowsStatus();
     createBrowserMenu();
-    createMoreOptionsMenu();
+    createToolbarUrlMenu();
 
     menuButton.setOnClickListener(new View.OnClickListener()
     {
@@ -140,12 +148,12 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
     });
 
-    moreOptionsButton.setOnClickListener(new View.OnClickListener()
+    toolbarUrlButton.setOnClickListener(new View.OnClickListener()
     {
       @Override
       public void onClick(View v)
       {
-        showMoreOptionsMenu();
+        showToolbarUrlMenu();
       }
     });
 
@@ -335,6 +343,76 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
       }
       catch (NumberFormatException nfe){}
     }
+
+    webView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener()
+    {
+      @Override
+      @SuppressLint("RestrictedApi")
+      public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+      {
+        WebView.HitTestResult result = ((WebView)v).getHitTestResult();
+
+        if (  (result != null)
+          && ( (WebView.HitTestResult.IMAGE_TYPE == result.getType()) || (WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE == result.getType()) ) )
+        {
+          final String extra = result.getExtra();
+
+          MenuInflater inflater = activity.getMenuInflater();
+          inflater.inflate(MyResources.getMenu("image_menu", activity), menu);
+
+          menu.findItem(MyResources.getId("shareImageURL", activity)).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
+          {
+            @Override
+            public boolean onMenuItemClick(@NonNull MenuItem item)
+            {
+              if ((extra != null) && (extra.startsWith("http")))
+              {
+                shareURL(extra);
+                return true;
+              }
+              return false;
+            }
+          });
+
+          menu.findItem(MyResources.getId("downloadImage", activity)).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
+          {
+            @Override
+            public boolean onMenuItemClick(@NonNull MenuItem item)
+            {
+              if ((extra != null) && (extra.startsWith("http")))
+              {
+                downloadImage(extra);
+                return true;
+              }
+              return false;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  private void downloadImage(String url)
+  {
+    String fileName = null;
+    String[] tokens = url.split("/");
+    if(tokens.length > 0)
+    {
+      fileName = tokens[tokens.length - 1];
+    }
+    if(Miscellaneous.isEmpty(fileName))
+    {
+      fileName = "shell4kbin";
+    }
+
+    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+    request.allowScanningByMediaScanner();
+    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+    DownloadManager dm = (DownloadManager) activity.getSystemService(DOWNLOAD_SERVICE);
+    dm.enqueue(request);
   }
 
   private void initInject()
@@ -607,9 +685,9 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     webViewPost.reload();
   }
 
-  private void shareURL()
+  private void shareURL(String url)
   {
-    VariousUtils.shareText(getVisibleWebView().getUrl(), activity);
+    VariousUtils.shareText(url, activity);
   }
 
   private void savePage()
@@ -661,15 +739,15 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   }
 
   @SuppressLint("RestrictedApi")
-  private void createMoreOptionsMenu()
+  private void createToolbarUrlMenu()
   {
-    moreOptionsMenu = new PopupMenu(activity, moreOptionsButton);
-    MenuInflater inflater = moreOptionsMenu.getMenuInflater();
-    inflater.inflate(MyResources.getMenu("more_options_menu", activity), moreOptionsMenu.getMenu());
-    moreOptionsMenu.setOnMenuItemClickListener(this);
+    toolbarUrlMenu = new PopupMenu(activity, toolbarUrlButton);
+    MenuInflater inflater = toolbarUrlMenu.getMenuInflater();
+    inflater.inflate(MyResources.getMenu("toolbar_url_menu", activity), toolbarUrlMenu.getMenu());
+    toolbarUrlMenu.setOnMenuItemClickListener(this);
 
-    moreOptionsMenuHelper = new MenuPopupHelper(activity, (MenuBuilder) moreOptionsMenu.getMenu(), moreOptionsButton);
-    moreOptionsMenuHelper.setForceShowIcon(true);
+    toolbarUrlMenuHelper = new MenuPopupHelper(activity, (MenuBuilder) toolbarUrlMenu.getMenu(), toolbarUrlButton);
+    toolbarUrlMenuHelper.setForceShowIcon(true);
   }
 
   private void keepMenuOpenOnSelection()
@@ -776,10 +854,10 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
   }
 
   @SuppressLint("RestrictedApi")
-  private void showMoreOptionsMenu()
+  private void showToolbarUrlMenu()
   {
-    moreOptionsMenu.show();
-    moreOptionsMenuHelper.show();
+    toolbarUrlMenu.show();
+    toolbarUrlMenuHelper.show();
   }
 
   @Override
@@ -874,7 +952,7 @@ public final class BrowserModel implements PopupMenu.OnMenuItemClickListener
     }
     else if(item.getItemId() == MyResources.getId("shareURL", activity))
     {
-      shareURL();
+      shareURL(getVisibleWebView().getUrl());
     }
     else if(item.getItemId() == MyResources.getId("savePage", activity))
     {
